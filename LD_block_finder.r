@@ -26,7 +26,7 @@ blockFit=function(M,cs,penNBlocks=TRUE) {
   pen
 }
 
-blockify=function(M,maxBlocks=10,minsize=10) {
+blockify=function(M,maxBlocks=10,minsize=10,...) {
   ds=c(); for(i in 2:ncol(M)) ds[i-1]=log(det(M[1:i,1:i]))
   n=length(ds); D=cbind(1:n,abs(ds-lag(ds)))
   D=D[order(D[,2]),]
@@ -35,7 +35,7 @@ blockify=function(M,maxBlocks=10,minsize=10) {
   for(i in 1:nrow(Dtry)) {
     csi=c(1,Dtry[1:i,1],n+1)
     csi=nonconsecutive(sort(csi),minsize)
-    pens[i]=sum(blockFit(M,csi))
+    pens[i]=sum(blockFit(M,csi,...))
   }
   cs=Dtry[1:which.max(pens),1]+1
   cs=c(1,cs,n+1)
