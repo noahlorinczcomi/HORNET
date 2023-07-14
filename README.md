@@ -8,10 +8,10 @@ This tutorial will use the Linux terminal to perform all operations and Python v
 
 Start by cloning the HORNET Github repository like this:
 
-'''unix
+```unix
 git clone https://github.com/noahlorinczcomi/HORNET.git
 cd HORNET
-'''
+```
 
 In the `HORNET` directory, you should see the following folders and files:
 1. `data/`
