@@ -55,16 +55,16 @@ An example command using the eQTLGen GWAS data and AD is this:
 
 ```unix
 python hornet.py \ 
- -eQTLGWAS testdata/eQTLGen \
- -phenoGWAS testdata/AD_Jansen_etal.txt.gz \
- -LDRef data/ldref/1kg_phase3_EUR_only \
- -isRawGTEx False \
- -snpLabels SNP,SNP \
- -eQTLSNPBPLabel SNPPos \
- -zLabels Zscore,Z \
- -effectAlleles AssessedAllele,A1 \
- -eQTLGeneLabel Gene \
- -eQTLGeneBP GenePos \
+ --eQTLGWAS testdata/eQTLGen \
+ --phenoGWAS testdata/AD_Jansen_etal.txt.gz \
+ --LDRef data/ldref/1kg3 \
+ --isRawGTEx False \
+ --snpLabels SNP,SNP \
+ --eQTLSNPBPLabel SNPPos \
+ --zLabels Zscore,Z \
+ --effectAlleles AssessedAllele,A1 \
+ --eQTLGeneLabel Gene \
+ --eQTLGeneBP GenePos \
 ```
 
 where the second value in each comma-separated argument corresponds to the phenotype (AD) and the first to the eQTL GWAS data.
@@ -74,16 +74,16 @@ Certain aspects of the command given to HORNET change when the eQTL GWAS data is
 
 ```unix
 python hornet.py \ 
- -eQTLGWAS testdata/GTEx \
- -phenoGWAS testdata/AD_Jansen_etal.txt.gz \
- -LDRef data/ldref/1kg_phase3_EUR_only \
- -isRawGTEx True \
- -snpLabels gtex,SNP \
- -eQTLSNPBPLabel gtex \
- -zLabels gtex,Z \
- -effectAlleles gtex,A1 \
- -eQTLGeneLabel gtex \
- -eQTLGeneBP gtex \
+ --eQTLGWAS testdata/GTEx \
+ --phenoGWAS testdata/AD_Jansen_etal.txt.gz \
+ --LDRef data/ldref/1kg3EUR \
+ --isRawGTEx True \
+ --snpLabels gtex,SNP \
+ --eQTLSNPBPLabel gtex \
+ --zLabels gtex,Z \
+ --effectAlleles gtex,A1 \
+ --eQTLGeneLabel gtex \
+ --eQTLGeneBP gtex \
 ```
 
 Here, all arguments indicating column names that correspond to the eQTL GWAS data set were replaced with `gtex`. The key argument is switching `-isRawGTEx` from False to True. This tells HORNET all it needs to load the data. Raw GTEx summary data do not contain rsIDs, which HORNET will automatically add using mapfiles in the `data/maps/1kgPhase3maps/`. directory. 
