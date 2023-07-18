@@ -1,0 +1,25 @@
+PLINK v1.90b7 32-bit (16 Jan 2023)
+Options in effect:
+  --bfile data/ldref/1kg3EUR
+  --extract tempfiles/myExtract.txt
+  --out tempfiles/tempOut
+  --r square
+
+Hostname: compt205
+Working directory: /mnt/rstor/SOM_EPBI_XXZ10/njl96/hornet
+Start time: Mon Jul 17 14:17:41 2023
+
+Random number seed: 1689617861
+96295 MB RAM detected; reserving 2047 MB for main workspace.
+1664850 variants loaded from .bim file.
+503 people (240 males, 263 females) loaded from .fam.
+--extract: 89 variants remaining.
+Using up to 9 threads (change this with --threads).
+Before main variant filters, 503 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+Total genotyping rate is in [0.9999995, 1).
+89 variants and 503 people pass filters and QC.
+Note: No phenotypes present.
+--r square to tempfiles/tempOut.ld ... done.
+
+End time: Mon Jul 17 14:17:41 2023

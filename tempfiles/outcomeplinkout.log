@@ -1,0 +1,28 @@
+PLINK v1.90b7 32-bit (16 Jan 2023)
+Options in effect:
+  --bfile data/ldref/1kg3EUR
+  --clump tempfiles/outcomePsout.txt
+  --clump-kb 0.5
+  --clump-p1 5e-05
+  --clump-p2 5e-05
+  --clump-r2 0.1
+  --out tempfiles/outcomeplinkout
+
+Hostname: compt205
+Working directory: /mnt/rstor/SOM_EPBI_XXZ10/njl96/hornet
+Start time: Mon Jul 17 14:11:54 2023
+
+Random number seed: 1689617514
+96295 MB RAM detected; reserving 2047 MB for main workspace.
+1664850 variants loaded from .bim file.
+503 people (240 males, 263 females) loaded from .fam.
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 503 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+Total genotyping rate is exactly 1.
+1664850 variants and 503 people pass filters and QC.
+Note: No phenotypes present.
+--clump: 1462 clumps formed from 1674 top variants.
+Results written to tempfiles/outcomeplinkout.clumped .
+
+End time: Mon Jul 17 14:11:55 2023
