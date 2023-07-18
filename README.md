@@ -22,38 +22,41 @@ rm hornet_data.tar
 
 Now, in the `HORNET` directory, you should see the following folders and files:
 1. `data/`
-    * `ldref/` # LD reference panels
+    * `ldref/` # *LD reference panels*
         * `1kg_phase3_<EUR/AFR/EAS/SAS/HIS/TRANS>_only.<bed/bim/fam>`
-    * `maps/` # mapfiles for converting from hg19 to hg38 and vice versa
+    * `maps/` # *folder containing mapfiles for converting from hg19 to hg38 and vice versa*
         * `1kgPhase3maps/`
-            * `1kgPhase3hg19Chrom<CHR>MapToHg38.txt.gz`
+            * `1kgPhase3hg19Chrom<CHR>MapToHg38.txt.gz` # *CHR-specific hg19/hg38 maps of only 1kg Phase 3 SNPs*
         * `fullMaps/`
-            * `1kgPhase3MapAllSNPs.txt`
+            * `1kgPhase3MapAllSNPs.txt` # *hg19/hg38 map using all 1kg Phase 3 SNPs*
         * `largeMaps/`
-            * `hg19Chrom<CHR>MapToHg38.txt.gz`
-        * `testdata/` # test/example data is included here for demonstrative purposes
+            * `hg19Chrom<CHR>MapToHg38.txt.gz` # *large hg19/hg38 map from GLGC (Graham et al. 2021) including 44M SNPs*
+        * `testdata/` # *test/example data is included here for demonstrative purposes*
             * `GTEx/`
-                * `GTEx_frontal_cortex_CHR1.txt.gz`
-                * `GTEx_frontal_cortex_CHR2.txt.gz`
+                * `GTEx_frontal_cortex_CHR1.txt.gz` # *all associations b/w SNPs and CHR 1 gene expression in frontal cortex (GTEx v8)*
+                * `GTEx_frontal_cortex_CHR2.txt.gz` # *all associations b/w SNPs and CHR 2 gene expression in frontal cortex (GTEx v8)*
             * `eQTLGen/`
-                * `eQTLGen_blood_CHR1.txt.gz`
-                * `eQTLGen_blood_CHR2.txt.gz`
-2. `tempfiles/` # temporary files will be iteratively written here when running HORNET
-3. `plinkdir/`  # the PLINK v1.9 software (Purcell etal) is here
-4. `LD_block_finder.r` # an R program to find blocks in an LD matrix using the method in Lorincz-Comi et al. ***
-5. `hornet.py`
+                * `eQTLGen_blood_CHR1.txt.gz` # *all associations b/w SNPs and CHR 1 gene expression in whole blood (eQTLGen)*
+                * `eQTLGen_blood_CHR2.txt.gz` # *all associations b/w SNPs and CHR 2 gene expression in whole blood (eQTLGen)*
+2. `tempfiles/` # *temporary files will be iteratively written here when running HORNET*
+3. `plinkdir/`  # *the PLINK v1.9 software (Purcell etal) is here*
+4. `LD_block_finder.r` # *an R program to find blocks in an LD matrix using the method in Lorincz-Comi et al. (***) *
+5. `hornet.py`    # *executable HORNET program*
+6. `functions.py` # *source file of functions that HORNET uses*
 
 The HORNET software requires a number of Python modules which may or may not be available to you already. 
 
 # Downloading summary GWAS data
-For this tutorial, we have already downloaded GWAS summary data for Alzheimer's disease (AD) from Jansen et al. (2019) and gene expression data in blood from the eQTLGen Consortium (--) and in frontal cortical tissue from the GTEx Consortium (-) for chromsomes 1 and 2. 
+Generally, we want to use eQTL GWAS summary statistics that represent estimates of association between SNPs and the expression of all genes within +-1Mb in a specific tissue. Since the scale of these data can be enormous when combined across the entire measurable genome, one file for each chromosome should exist in a directory/folder by themselves.
 
-Gene expression GWAS data are stored in the `testdata/` directory under the names `eQTLGen/eQTLGen_blood_CHR1.txt.gz` and `GTEx/GTEx_frontal_cortex_CHR1.txt.gz`, where data sets from these two sources are placed into separate folders for reasons that will become apparent later.
+For this tutorial, we have already downloaded GWAS summary data for Alzheimer's disease (AD) from Jansen et al. (2019) and gene expression data in blood from the eQTLGen Consortium (https://www.eqtlgen.org/) and in frontal cortical tissue from the GTEx Consortium (https://gtexportal.org/home/) for chromsomes 1 and 2. 
 
-AD GWAS data are stored in the `testdata/` directory under the name `AD_Jansen_etal.txt.gz`.
+Gene expression GWAS data are stored in the `testdata/` directory under the names `eQTLGen/eQTLGen_blood_CHR<1,2>.txt.gz` and `GTEx/GTEx_frontal_cortex_CHR<1,2>.txt.gz`, where data sets from these two sources are placed into separate folders for reasons that will become apparent later.
 
-# Using HORNET
-HORNET is a command-line tool. This means that the user defines a single command and executes it in the terminal. The command that the user gives HORNET is slightly different if they are using raw summary data from GTEx vs some other source, such as eQTLGen. First, we demonstrate how to use HORNET with eQTL GWAS data that is **not** from GTEx.
+AD GWAS data are stored directly in the `testdata/` directory under the name `AD_Jansen_etal.txt.gz`.
+
+# Using HORNET on the command line
+HORNET partially exists as a command-line tool. This means that the user defines a single command and executes it in the terminal. The command that the user gives HORNET is slightly different if they are using raw summary data from GTEx vs some other source, such as eQTLGen. First, we demonstrate how to use HORNET with eQTL GWAS data that is **not** from GTEx.
 
 ## eQTL summary data NOT from GTEx
 If the eQTL GWAS summary data is not from GTEx, HORNET must be told the following information:
@@ -68,7 +71,7 @@ An example command using the eQTLGen GWAS data and AD is this:
 python hornet.py \ 
  --eQTLGWAS testdata/eQTLGen \
  --phenoGWAS testdata/AD_Jansen_etal.txt.gz \
- --LDRef data/ldref/1kg3 \
+ --LDRef data/ldref/1kg3EUR \
  --isRawGTEx False \
  --snpLabels SNP,SNP \
  --eQTLSNPBPLabel SNPPos \
@@ -76,9 +79,10 @@ python hornet.py \
  --effectAlleles AssessedAllele,A1 \
  --eQTLGeneLabel Gene \
  --eQTLGeneBP GenePos \
+ --out AD_blood
 ```
 
-where the second value in each comma-separated argument corresponds to the phenotype (AD) and the first to the eQTL GWAS data.
+where the second value in each comma-separated argument corresponds to the phenotype (AD) and the first to the eQTL GWAS data. See all files in the `data/ldref/` directory if you want to choose a different 1kg Phase 3 population as the LD reference panel.
 
 ## eQTL summary data from GTEx
 Certain aspects of the command given to HORNET change when the eQTL GWAS data is directly from GTEx. Here is the basic command to give HORNET in this case:
@@ -95,13 +99,17 @@ python hornet.py \
  --effectAlleles gtex,A1 \
  --eQTLGeneLabel gtex \
  --eQTLGeneBP gtex \
+ --out AD_frontal_cortex
 ```
 
-Here, all arguments indicating column names that correspond to the eQTL GWAS data set were replaced with `gtex`. The key argument is switching `-isRawGTEx` from False to True. This tells HORNET all it needs to load the data. Raw GTEx summary data do not contain rsIDs, which HORNET will automatically add using mapfiles in the `data/maps/1kgPhase3maps/`. directory. 
+Here, all arguments indicating column names that correspond to the eQTL GWAS data set were replaced with `gtex`. The key argument is switching `-isRawGTEx` from False to True. This tells HORNET all it needs to load the data. Raw GTEx summary data do not contain rsIDs, which HORNET will automatically add using mapfiles in the `data/maps/1kgPhase3maps/` directory. 
 
-There are additional arguments that HORNET accepts, which relate to how gene groups are formed, IVs are selected, LD is handled, and the causal estimates are made. These option can be inspected more closely by looking at the output of:
+There are additional arguments that HORNET accepts, which relate to how gene groups are formed, IVs are selected, LD is handled, and the causal estimates are made. These options can be inspected more closely by looking at the output of:
 
 ```unix
-./hornet.py --help
+python hornet.py --help
 ```
+
+# HORNET Results
+Assume we ran the above command for GTEx data. This will put causal estimates into the `AD_frontal_cortex_results.txt` file in the `hornet` directory. Other filepaths can be specified by changing the argument given to the `--out` flag. HORNET will also write out a file named `AD_frontal_cortex_diagnostics.txt`, which contains information related to missingness and imputation, the initial size of the gene network, the size of the IV set after applying various QC, etc.
 
