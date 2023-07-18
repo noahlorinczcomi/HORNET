@@ -13,7 +13,14 @@ git clone https://github.com/noahlorinczcomi/HORNET.git
 cd HORNET
 ```
 
-In the `HORNET` directory, you should see the following folders and files:
+Next, you must copy the `hornet_data/` directory from our public web page using the following command:
+```unix
+wget -O hornet_data.tar http://hal.case.edu/~njl96/hornet_data.tar.gz
+tar -xvf hornet_data.tar
+rm hornet_data.tar
+```
+
+Now, in the `HORNET` directory, you should see the following folders and files:
 1. `data/`
     * `ldref/` # LD reference panels
         * `1kg_phase3_<EUR/AFR/EAS/SAS/HIS/TRANS>_only.<bed/bim/fam>`
