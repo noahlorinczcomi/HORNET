@@ -4,7 +4,7 @@ This tutorial demonstrates how to download and use the HORNET software to perfor
 3. Lorincz-Comi, N., Yang, Y., Li, G., & Zhu, X. (2023). MRBEE: A novel bias-corrected multivariable Mendelian Randomization method. *bioRxiv*, 2023-01. DOI: https://doi.org/10.1101/2023.01.10.523480
 
 # Downloading HORNET
-This tutorial will use the Linux terminal to perform all operations and Python v3.7 must be executable from the command line. Note that later versions of Python may become incompatible with HORNET as some of its dependencies are updated and certain functionality may become deprecated. We therefore recommend using Python v3.7. 
+This tutorial will use the Linux terminal to perform all operations and Python v3.7 must be accessible from the command line. Note that later versions of Python may become incompatible with HORNET as some of its dependencies are updated and certain functionality may become deprecated. We therefore recommend using Python v3.7. 
 
 Start by cloning the HORNET Github repository like this:
 
@@ -31,13 +31,17 @@ Now, in the `HORNET` directory, you should see the following folders and files:
             * `1kgPhase3MapAllSNPs.txt`
         * `largeMaps/`
             * `hg19Chrom<CHR>MapToHg38.txt.gz`
+        * `testdata/` # test/example data is included here for demonstrative purposes
+            * `GTEx/`
+                * `GTEx_frontal_cortex_CHR1.txt.gz`
+                * `GTEx_frontal_cortex_CHR2.txt.gz`
+            * `eQTLGen/`
+                * `eQTLGen_blood_CHR1.txt.gz`
+                * `eQTLGen_blood_CHR2.txt.gz`
 2. `tempfiles/` # temporary files will be iteratively written here when running HORNET
-3. `testdata/`  # test/example data is included here for demonstrative purposes
-    * `GTEx`
-    * `eQTLGen`
-4. `plinkdir/`  # the PLINK v1.9 software (Purcell etal) is here
-5. `LD_block_finder.r` # an R program to find blocks in an LD matrix using the method in Lorincz-Comi et al. ***
-6. `hornet.py`
+3. `plinkdir/`  # the PLINK v1.9 software (Purcell etal) is here
+4. `LD_block_finder.r` # an R program to find blocks in an LD matrix using the method in Lorincz-Comi et al. ***
+5. `hornet.py`
 
 The HORNET software requires a number of Python modules which may or may not be available to you already. 
 
