@@ -23,6 +23,7 @@ rm hornet_data.tar
 mkdir tempfiles
 ```
 
+<!---
 Now, in the `HORNET` directory, you should see the following folders and files:
 1. `data/`
     * `ldref/` # *LD reference panels*
@@ -46,6 +47,7 @@ Now, in the `HORNET` directory, you should see the following folders and files:
 4. `LD_block_finder.r` # *an R program to find blocks in an LD matrix using the method in Lorincz-Comi et al. (***) *
 5. `hornet.py`    # *executable HORNET program*
 6. `functions.py` # *source file of functions that HORNET uses*
+--->
 
 The HORNET software requires a number of Python modules which may or may not be available to you already. 
 
