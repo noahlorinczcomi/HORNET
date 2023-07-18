@@ -13,7 +13,7 @@ git clone https://github.com/noahlorinczcomi/HORNET.git
 cd HORNET
 ```
 
-Next, you must copy the `hornet_data/` directory from our public web page using the following command:
+Next, you must copy the `hornet_data` tarball from our public web page using the following command:
 ```unix
 wget -O hornet_data.tar http://hal.case.edu/~njl96/hornet_data.tar.gz
 tar -xvf hornet_data.tar
