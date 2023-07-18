@@ -20,6 +20,7 @@ Next, you must copy the `hornet_data` tarball from our public web page using the
 wget -O hornet_data.tar http://hal.case.edu/~njl96/hornet_data.tar.gz
 tar -xvf hornet_data.tar
 rm hornet_data.tar
+mkdir tempfiles
 ```
 
 Now, in the `HORNET` directory, you should see the following folders and files:
