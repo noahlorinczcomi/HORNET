@@ -181,7 +181,7 @@ for _ in range(0, len(os.listdir(dirGene))):
 fp1=args.out+'.txt'
 fp2=args.out+'_diagnostics.txt'
 runningres.to_csv(fp1,sep='\t')
-runningres.to_csv(fp2,sep='\t')
+runningdiagnostics.to_csv(fp2,sep='\t')
 print('Results are written to '+fp1)
 print('Analysis diagnostics are written to '+fp2)
 
