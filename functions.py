@@ -4,6 +4,8 @@ import warnings
 import scipy
 import argparse
 import os
+import time
+import platform # platform.system() -> 'Linux': Linux, 'Darwin': Mac, 'Windows': Windows
 import re
 import subprocess
 import collections
@@ -987,24 +989,24 @@ def organizeThingsMonitored(_dict_):
     return df0
 
 # function to separate full eQTLGen GWAS data (all CHRs) into chromosome-specific files (speeds later operations up)
-def splitEQTLGenDataIntoCHRs(fulleqtlgenfp,diryouwant,verbose=True):
-    # fulleqtlgenfp: filepath to full eQTLGen data (with file extension)
-    # diryouwant: the directory in which you want me to make a new directory called chrSpecificEQTLs that I'll put the chr-specific data in
-    # load full data
-    if verbose:
-        print('loading full eQTLGen data for all chromosomes. please note that due to the size of the full eQTLGen data, this process may take a while (~20 minutes)')
-    fullData=pandas.read_table(fulleqtlgenfp,sep=None,engine='python')
-    allchrs=fullData['SNPChr'].unique()
-    for _ in range(0,len(allchrs)):
-        if verbose:
-            print('starting chromosome '+thischr)
-        datachr=fullData[fullData['SNPChr']==allchrs[_]]
-        fpOut=diryouwant+'/chr'+thischr+'eqtls.txt'
-        numpy.savetxt(fpOut, datachr)
-        cmd=["gzip", fpOut] # the command for PLINK
-        out=subprocess.call(cmd,stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-        if verbose:
-            print('finished chromosome '+thischr)
+# def splitEQTLGenDataIntoCHRs(fulleqtlgenfp,diryouwant,verbose=True):
+#     # fulleqtlgenfp: filepath to full eQTLGen data (with file extension)
+#     # diryouwant: the directory in which you want me to make a new directory called chrSpecificEQTLs that I'll put the chr-specific data in
+#     # load full data
+#     if verbose:
+#         print('loading full eQTLGen data for all chromosomes. please note that due to the size of the full eQTLGen data, this process may take a while (~20 minutes)')
+#     fullData=pandas.read_table(fulleqtlgenfp,sep=None,engine='python')
+#     allchrs=fullData['SNPChr'].unique()
+#     for _ in range(0,len(allchrs)):
+#         if verbose:
+#             print('starting chromosome '+thischr)
+#         datachr=fullData[fullData['SNPChr']==allchrs[_]]
+#         fpOut=diryouwant+'/chr'+thischr+'eqtls.txt'
+#         numpy.savetxt(fpOut, datachr)
+#         cmd=["gzip", fpOut]
+#         out=subprocess.call(cmd,stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+#         if verbose:
+#             print('finished chromosome '+thischr)
 
 # Yihe's matrix completion
 def poet(A,k):
@@ -1096,7 +1098,7 @@ def LDLeadGeneSNPs(res, writableDir=os.getcwd(),ldRefDir='/mnt/rstor/SOM_EPBI_XX
     outDir1=writableDir+'/myExtract.txt' # (for saving SNPs for LD calculations) write out to a directory that must be writable (since the user is there)
     outDir2=writableDir+'/tempOut' # (for saving LD matrix)
     res['LeadSNP'].to_csv(outDir1, header=False, index=False, sep=" ") # writing out list of SNPs to give PLINK to make LD calculations
-    cmd=["./plinkdir/plink", "--r", "square", "--bfile", ldRefDir, "--extract", outDir1, "--out", outDir2] # the command for PLINK
+    cmd=[callPlink(), "--r", "square", "--bfile", ldRefDir, "--extract", outDir1, "--out", outDir2] # the command for PLINK
     out=subprocess.call(cmd,stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT) # executing the command in the terminal
     ldmat=numpy.loadtxt(writableDir+'/tempOut.ld', dtype='f') # reading LD matrix back in; matrix format but with duplicates occupying only one row/column
     ### maybe for the plotting this does not matter actually ... 
@@ -1309,13 +1311,29 @@ def adjustInflation(res,infl):
     res2['MRBEEHuberSE']=res2['MRBEEHuberSE']*(infl**0.5)
     return res2
 
+def callDelete():
+    sys=platform.system()
+    if (sys=='Linux') | (sys=='Darwin'):
+        call_='rm'
+    elif sys=='Windows':
+        call_='del'
+    return call_
+
+def callPlink():
+    sys=platform.system()
+    if (sys=='Linux') | (sys=='Darwin'):
+        call_='./plinkdir/plink'
+    elif sys=='Windows':
+        call_='plinkdir/plink.exe'
+    return call_
+
 def findOutcomeSignals(dataPheno,ldRefDir,writableDir,outcomeClumpingKBWindow,outcomeClumpingPthreshold,outcomeClumpingR2):
     # outcomeClumpingKBWindow, outcomeClumpingPthreshold, outcomeClumpingR2:
     #  - parameters to give PLINK to find clumps in the outcome GWAS (whole genome, not CHR-specific)
     dataPheno_=dataPheno.copy()[abs(dataPheno['phenoZ'])>norm.ppf(1-outcomeClumpingPthreshold)] # subset to speed things up
     dataPheno_['P']=numpy.array([norm.cdf(-abs(dataPheno_['phenoZ'].values[x])) for x in range(0,dataPheno_.shape[0])])
     dataPheno_[['phenoSNP','P']].rename(columns={'phenoSNP':'SNP'}).to_csv(writableDir+'/outcomePsout.txt', index=False, sep="\t")
-    cmd=["./plinkdir/plink", "--bfile", ldRefDir, "--clump", writableDir+"/outcomePsout.txt", "--clump-kb", str(outcomeClumpingKBWindow), "--clump-p1", str(outcomeClumpingPthreshold), "--clump-p2", str(outcomeClumpingPthreshold), "--clump-r2", str(outcomeClumpingR2), "--out", writableDir+"/outcomeplinkout"]
+    cmd=[callPlink(), "--bfile", ldRefDir, "--clump", writableDir+"/outcomePsout.txt", "--clump-kb", str(outcomeClumpingKBWindow), "--clump-p1", str(outcomeClumpingPthreshold), "--clump-p2", str(outcomeClumpingPthreshold), "--clump-r2", str(outcomeClumpingR2), "--out", writableDir+"/outcomeplinkout"]
     out=subprocess.call(cmd,stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT) # executing the command in the terminal
     outcomeClumps=pandas.read_fwf(writableDir+'/outcomeplinkout.clumped', sep='\t') # reading LD matrix back in
     outcomeClumps=outcomeClumps['SNP'].dropna().values # for some reason some NAs get appended to the end
@@ -1570,7 +1588,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
               analysisOnlyInOutcomeLoci=True,outcomeLociMbWindow=1,
               ldUpperLimit=0.5,ldOtherLociOtherPt=0.0001,ldOtherLociR2=0.1,ldOtherLociWindow=1,q0Correls=3.290527,nMinCorrels=50,
               jointChiGenesP=5e-8,assumedMissingMean=0,opAlpha='dynamic',verbose=True,nMinIVs=50,hessMinScale=5,silence=False,
-              UniMRIVPThreshold=1e-8,candidateGenes=[],assumeNoSampleOverlap=True,shrinkBiasCorrection=True,saveData=False):
+              UniMRIVPThreshold=1e-8,candidateGenes=[],assumeNoSampleOverlap=True,shrinkBiasCorrection=True,impute=True,saveData=False):
     # ldOtherLociOtherPt: only SNPs with P<this threshold will be considered when removing SNPs in IV set that are in LD with SNPs outside of the LD set
     # making sure the user hasn't passed anything crazy for ldOtherLociWindow
     if (ldOtherLociWindow>10) & (silence==False):
@@ -1618,7 +1636,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
             tt=numpy.array([theseGenes[x] in candidateGenes for x in range(0,len(theseGenes))])
             if sum(tt)==0:
                 continue
-
+        
         thingsToMonitor['startingNumGenes']=len(theseGenes) # number of starting genes
         genedf=merged[merged['Gene'].isin(theseGenes)] # filter full data set to only these genes
         genedf=genedf.dropna(subset=['phenoZ']) # drop rows with missing values for outcome (I will not want to impute these)
@@ -1631,7 +1649,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
             if sum(tt)==0: # if no genedf SNPs (candidate IVs) are within outcomeLociMbWindow of any outcome clumps, move to the next group
                 thingsToMonitor['locusSkippedBCNoOutcomeSignal']=ggKeys[ogene] # defining the gene locus using the index gene
                 continue
-
+        
         ### may still want to impose a restriction on which SNPs can be included - some SNPs have >75% missing for genes - do we really want to keep these?
         gnKeep=genedf['Gene'].value_counts(); gnKeep=gnKeep[gnKeep>numpy.min([100,len(sn)*0.1])] # restricting genes to only those with >100 SNPs or at least 10% observed
         genedf=genedf[genedf['Gene'].isin(list(gnKeep.index))]; # restricting and noting which genes got removed
@@ -1641,7 +1659,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
             reshaped=genedf.copy(); reshaped=reshaped.rename(columns={'geneZ': newGenes[0]+'_Z'})
         else:
             reshaped=reshapeCorrelDf(genedf,newGenes,'Gene',joinType='outer') # reshaping data to be wide format (will have some NaN's if joinType='outer')
-
+        
         ### identify lead SNP for each gene (its ok if some of these will not be included in MR, this is for later infererence and plotting)
         genedf['absZ']=numpy.abs(genedf['geneZ'])
         leadGeneSNPDf=genedf.loc[genedf.groupby('Gene')['absZ'].idxmax()][['geneSNP','Gene','geneZ']]
@@ -1660,12 +1678,12 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         # cn and columns of X are in the same order. How to find geneBPs that are in this same order:
         cnstripped=[cn[x].split('_',1)[0] for x in range(0,len(cn))]
         gg=pandas.merge(pandas.DataFrame({'hi': cnstripped}), geneLocs, left_on='hi', right_on='Gene')['geneBP'].values
-        if X.shape[1]>1:
+        mask=numpy.isnan(X); Del=mask+1-1; newX=X.copy()
+        if (X.shape[1]>1) & (impute==True):
             L,Factor,Gamma=ffimputeBIC(X,Kmax=15,dg=gg,dim_proj=0,W=makeI(X.shape[0]),iter_max=15,eps=0.001,tuning=0)
-            mask=numpy.isnan(X); Del=mask+1-1
-            newX=X.copy(); newX[mask]=L[mask]        
-        else:
-            newX=X.copy()
+            newX[mask]=L[mask]
+        elif (X.shape[1]>1) & (impute==False):
+            newX[mask]=0
         
         # Omega=numpy.isnan(X); Xc=X.copy(); Xc[Omega]=assumedMissingMean; d0=numpy.linalg.svd(Xc,compute_uv=False)
         # newX,out2,out3=fullRankMatrixCompletion(X.copy(),missImp=0,lambda_=min(d0)/2,eps=0.01*X.shape[1]) # lambda_ chosen somewhat arbitrarily
@@ -1754,7 +1772,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         newX=newX[reshaped['index'].values] # Need to make sure the data I already created (newX/bX) matches this order
         minBP=min(reshaped['snpBP'].values); maxBP=max(reshaped['snpBP'].values)
         thingsToMonitor['BPSpanOfIVSet']=maxBP/1e6-minBP/1e6
-
+        
         if ldOtherLociWindow>0:
             # defaults: ldOtherLociOtherPt=5e-5,ldOtherLociR2=0.1
             mask1=merged[(merged['snpBP']<minBP) & (merged['snpBP']>(minBP-ldOtherLociWindow*1e6))]
@@ -1766,7 +1784,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
             # write out big list in this order: mask1, reshaped, mask2
             big_list=pandas.concat([mask1['geneSNP'],reshaped['geneSNP'],mask2['geneSNP']])
             big_list.to_csv(outDir1, header=False, index=False, sep=" ") # writing out list of SNPs to give PLINK to make LD calculations
-            cmd=["./plinkdir/plink", "--r", "square", "--bfile", ldRefDir, "--extract", outDir1, "--out", outDir2] # the command for PLINK
+            cmd=[callPlink(), "--r", "square", "--bfile", ldRefDir, "--extract", outDir1, "--out", outDir2] # the command for PLINK
             out=subprocess.call(cmd,stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT) # executing the command in the terminal
             ldmat=numpy.genfromtxt(outDir2+'.ld', dtype='f') # reading LD matrix back in
             # now need to know if any SNPs in reshaped are in LD>ldOtherLociR2(=0.1 be default) with SNPs outside of reshaped
@@ -1788,7 +1806,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         else:
             # personal check (should be all True's): [sum(newX[:,xx]==reshaped[cn[xx]].values)==newX.shape[0] for xx in range(0,newX.shape[1])]
             reshaped['geneSNP'].to_csv(outDir1, header=False, index=False, sep=" ") # writing out list of SNPs to give PLINK to make LD calculations
-            cmd=["./plinkdir/plink", "--r", "square", "--bfile", ldRefDir, "--extract", outDir1, "--out", outDir2] # the command for PLINK
+            cmd=[callPlink(), "--r", "square", "--bfile", ldRefDir, "--extract", outDir1, "--out", outDir2] # the command for PLINK
             out=subprocess.call(cmd,stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT) # executing the command in the terminal
             ldmat=numpy.genfromtxt(outDir2+'.ld', dtype='f') # reading LD matrix back in
             # ldmat is ordered by BP position, NOT by order of SNPs in myExtract.txt. That is why I sorted reshaped by snpBP
@@ -1817,7 +1835,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         sparsePrecisionSqrt=v@numpy.diag(1/w**0.5)@v.T
         thingsToMonitor['alphaToMakeLDMatPosDef']=alpha
         ############################################################### end middle 1/3rd (correlations and imputation)
-
+        
         ############################################################### start final 1/3rd (MR and saving data) (avg ~2 seconds per gene group)
         # organizing data
         bx=numpy.array(newX); by=reshaped['phenoZ'].values; bx0=bx.copy(); by0=by.copy()
@@ -1887,7 +1905,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         if shrinkBiasCorrection:
             UU=UU*0.5; UU_=UU_*0.5
             UV=UV*0.5; UV_=UV_*0.5
-
+        
         if (opAlpha=="dynamic") & (bx.shape[0]>10):
             c_c=numpy.corrcoef(bx,rowvar=False); numpy.fill_diagonal(c_c.reshape((p,p)), 0)
             opAlphaVal=float(numpy.max(abs(c_c)))
@@ -2078,7 +2096,7 @@ def UVMRworkhorse(merged,writableDir,ldRefDir,LDWindowMb=1,LDMaxInWindow=0.5,eQT
         outDir1=writableDir+"/myExtract.txt"
         outDir2=writableDir+"/ld"
         big_list.to_csv(outDir1, header=False, index=False, sep=" ") # writing out list of SNPs to give PLINK to make LD calculations
-        cmd=["./plinkdir/plink", "--r", "square", "--bfile", ldRefDir, "--extract", outDir1, "--out", outDir2] # the command for PLINK
+        cmd=[callPlink(), "--r", "square", "--bfile", ldRefDir, "--extract", outDir1, "--out", outDir2] # the command for PLINK
         out=subprocess.call(cmd,stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT) # executing the command in the terminal
         ldmat=numpy.loadtxt(outDir2+'.ld', dtype='f') # reading LD matrix back in
         # now need to know if any SNPs in reshaped are in LD>ldOtherLociR2(=0.1 be default) with SNPs outside of reshaped
@@ -2238,7 +2256,7 @@ def calcInflationFactor(merged,ldRefDir,writableDir,mbWindow=5,ldUpperLimit=0.5,
             roundFactor=1
         dat=dat.iloc[::roundFactor,:].drop_duplicates('geneSNP')
         dat['geneSNP'].to_csv(outDir1,header=False, index=False, sep=" ") # writing out list of SNPs to give PLINK to make LD calculations
-        cmd=["./plinkdir/plink", "--r", "square", "--bfile", ldRefDir, "--extract", outDir1, "--out", outDir2] # the command for PLINK
+        cmd=[callPlink(), "--r", "square", "--bfile", ldRefDir, "--extract", outDir1, "--out", outDir2] # the command for PLINK
         out=subprocess.call(cmd,stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT) # executing the command in the terminal
         ldmat=numpy.genfromtxt(outDir2+'.ld', dtype='f') # reading LD matrix back in
         mask=(numpy.isnan(ldmat).sum(axis=0)==ldmat.shape[0])==False # if any missing (bc MAF==0), will have all nan's for that SNP

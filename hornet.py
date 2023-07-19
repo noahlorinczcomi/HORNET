@@ -3,8 +3,6 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 from functions import *
 import argparse
-import os
-import time
 
 parser=argparse.ArgumentParser(prog='HORNET: Genome-wide robust multivariable MR with gene expression',
                     description='This program performs univariable and multivariable MR with MR-Jones to identify causal genes and their regulatory networks.')
@@ -42,18 +40,19 @@ parser.add_argument('--otherLociMbWindow',action='store',type=float,default=0.05
 parser.add_argument('--MVMRIVPThreshold',action='store',type=float,default=5e-8,help='(Optional) IVs must have P<this threshold in a joint test for multiple genes to be considered as IVs in multivariable MR. The default is 5e-8.')
 parser.add_argument('--UVMRIVPThreshold',action='store',type=float,default=5e-5,help='(Optional) IVs must have P<this threshold in the eQTL GWAS to be considered as IVs in univariable MR. The default is 5e-5.')
 ### estimation
-parser.add_argument('--nSNPsBiasCorrection',action='store',type=int,default=50,help='(Optional) The minimum number of non-significant SNPs to be used when calculating bias-correction terms used by MR-Jones, following the methods of Lorincz-Comi et al. (2023). The default is 50.')
-parser.add_argument('--PvalueThresholdBiasCorrection',action='store',type=float,default=0.01,help='(Optional) Only SNPs with P<this threshold will be used to calculatee the bias-correction terms in MR-Jones, following the methods of Lorincz-Comi et al. (2023). The default is 0.01.')
-parser.add_argument('--assumeNoSampleOverlap',action='store',type=str,default='yes',help='(Optional) Should it be assumed that the eQTL and disease GWAS do not share any of the same participants? If this assumption should not be made, bias-correction for sample overlap will be made following the methods of Lorincz-Comi et al. (2023). The default is "yes".')
+parser.add_argument('--imputeMissingEQTLs',action='store',type=str,default='yes',help='(Optional) Should missing values in the MVMR IV set (which is a union set of gene-specific IV sets) be imputed using the matrix completion method described in Lorincz-Comi & Yang et al (2023)? If you put "no" or "False" here, missing values will still be imputed, but with all 0s. The default is "yes".')
+parser.add_argument('--nSNPsBiasCorrection',action='store',type=int,default=50,help='(Optional) The minimum number of non-significant SNPs to be used when calculating bias-correction terms used by MR-Jones, following the methods of Lorincz-Comi & Yang et al. (2023). The default is 50.')
+parser.add_argument('--PvalueThresholdBiasCorrection',action='store',type=float,default=0.01,help='(Optional) Only SNPs with P<this threshold will be used to calculatee the bias-correction terms in MR-Jones, following the methods of Lorincz-Comi & Yang et al. (2023). The default is 0.01.')
+parser.add_argument('--assumeNoSampleOverlap',action='store',type=str,default='yes',help='(Optional) Should it be assumed that the eQTL and disease GWAS do not share any of the same participants? If this assumption should not be made, bias-correction for sample overlap will be made following the methods of Lorincz-Comi & Yang et al. (2023). The default is "yes".')
 parser.add_argument('--minMVMRIVs',action='store',type=int,default=30,help='(Optional) The minimum number of IVs that may be used in multivariable MR with MR-Jones. If less than this threshold are available for the locus, the locus will be skipped. The default is 30.')
 parser.add_argument('--hessMinScale',action='store',type=float,default=2.5,help='(Optional) The signal-to-noise ratio for associations between SNPs and gene expression. Larger values will restrict the analysis to only genes with the strongest signals. Values equal to or less than 1/2 may lead to a Hessian matrix with diagonal elements that are not the correct sign, which is introduced by the MRBEE/MR-Jones correction for weak instruments. Note that the bias-correction term in the Hessian matrix of MR-Jones is automatically multiplied by the factor 1/2. The default is 2.5, corresponding to an effective signal-to-noise ratio of 5.')
 ### post-estimation stuff
-parser.add_argument('--adjustSEsForInflation',action='store',type=str,default='true',help='(Optional) One of True or False. Should the standard errors of causal effect estimates be adjusted for inflation due to misspecified LD structure? The default is True.')
+parser.add_argument('--adjustSEsForInflation',action='store',type=str,default='yes',help='(Optional) One of True or False. Should the standard errors of causal effect estimates be adjusted for inflation due to misspecified LD structure? The default is "yes".')
 parser.add_argument('--saveRawData',action='store',type=str,default='false',help='(Optional) One of True or False. Should the raw data used in multivariable MR be saved? This includes association estimates with each gene in a group, their standard errors, correspondingly the same for the outcome phenotype, and the estimated LD matrix.')
 parser.add_argument('--out',action='store',type=str,default='results',help='(Optional) filepath without extension of location in which results should be written, in tab-separated .txt format. The default is results. Note that a tab-separated file named diagnostics.txt will automatically be written. This file contains information about the performance of multivariable MR.')
 parser.add_argument('--iterativelySave',action='store',type=str,default='true',help='(Optional) Should results be saved iteratively as each chromosome is completed? This is helpful if you anticipate the analysis may take a relatively long time and you do not want to lose progress in case your access to the machine it is running on expires. The default is True.')
 ### flags related to what is printed or not
-parser.add_argument('--silence',action='store',type=str,default='no',help='(Optional) Should warnings about the size of the CHP window outside of the target locus be ignored? Put True or yes. The default is "no".')
+parser.add_argument('--silence',action='store',type=str,default='no',help='(Optional) Should warnings about the size of the CHP window outside of the target locus be ignored? Put "true" or "yes". The default is "no".')
 ### done
 print(' ')
 print('HORNET started '+time.ctime())
@@ -77,6 +76,7 @@ snplabs=args.snpLabels.split(',')
 zlabs=args.zLabels.split(',')
 ealabs=args.effectAlleles.split(',')
 startwd=os.getcwd() # starting working directory - will be the one containing the HORNET software
+impute=(args.imputeMissingEQTLs.lower()=='true') | (args.imputeMissingEQTLs.lower()=='yes')
 
 ### exposure parameters
 dirGene=args.eQTLGWAS 
@@ -158,7 +158,7 @@ for _ in range(0, len(os.listdir(dirGene))):
                                             ldOtherLociWindow=ldOtherLociWindow, q0Correls=q0Correls,nMinCorrels=nMinCorrels,jointChiGenesP=jointChiGenesP,
                                             assumedMissingMean=assumedMissingMean,opAlpha=opAlpha,verbose=verbose,nMinIVs=nMinIVs,
                                             hessMinScale=hessMinScale,silence=silence, UniMRIVPThreshold=UniMRIVPThreshold, candidateGenes=candidateGenes,
-                                            assumeNoSampleOverlap=assumeNoSampleOverlap,shrinkBiasCorrection=shrinkBiasCorrection,saveData=saveData)
+                                            assumeNoSampleOverlap=assumeNoSampleOverlap,shrinkBiasCorrection=shrinkBiasCorrection,impute=impute,saveData=saveData)
     if len(outerDict)==0:
         continue
     res=organizeMetaResults(outerDict); res['CHR']=chromosome # store results
@@ -187,12 +187,13 @@ print('Analysis diagnostics are written to '+fp2)
 
 # remove unnecessary files
 # now I want to remove these files I just wrote out because they may be large
-out=subprocess.call(["rm", writableDir+'/tempOut.ld'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-out=subprocess.call(["rm", writableDir+'/tempOut.log'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-out=subprocess.call(["rm", writableDir+"/myExtract.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-out=subprocess.call(["rm", writableDir+"/outcomeplinkout.clumped"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-out=subprocess.call(["rm", writableDir+"/outcomeplinkout.log"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-out=subprocess.call(["rm", writableDir+"/outcomePsout.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+delcall=callDelete()
+out=subprocess.call([delcall, writableDir+'/tempOut.ld'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+out=subprocess.call([delcall, writableDir+'/tempOut.log'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+out=subprocess.call([delcall, writableDir+"/myExtract.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+out=subprocess.call([delcall, writableDir+"/outcomeplinkout.clumped"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+out=subprocess.call([delcall, writableDir+"/outcomeplinkout.log"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+out=subprocess.call([delcall, writableDir+"/outcomePsout.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
 
 # network construction
 ## steps:
