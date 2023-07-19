@@ -23,6 +23,13 @@ rm hornet_data.tar
 mkdir tempfiles
 ```
 
+The creation of `tempfiles` is to help you. The program accepts a flag `--writableDir` which expects `tempfiles` to be given to it. If `tempfiles` does not exist, you must specify the `--writabledir` flag with any folder/directory that can be iteratively written into while HORNET runs.
+
+**NOTE**, the HORNET software requires a number of Python modules which may or may not be available to you already. To install the required modules, please execute the following command, where `requirements.txt` is in the `hornet` folder:
+```unix
+pip install -r requirements.txt
+```
+
 <!---
 Now, in the `HORNET` directory, you should see the following folders and files:
 1. `data/`
@@ -48,8 +55,6 @@ Now, in the `HORNET` directory, you should see the following folders and files:
 5. `hornet.py`    # *executable HORNET program*
 6. `functions.py` # *source file of functions that HORNET uses*
 --->
-
-The HORNET software requires a number of Python modules which may or may not be available to you already. 
 
 # Downloading summary GWAS data
 Generally, we want to use eQTL GWAS summary statistics that represent estimates of association between SNPs and the expression of all genes within +-1Mb in a specific tissue. Since the scale of these data can be enormous when combined across the entire measurable genome, one file for each chromosome should exist in a directory/folder by themselves.
