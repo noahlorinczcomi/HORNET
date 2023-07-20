@@ -25,7 +25,7 @@ mkdir tempfiles
 
 The creation of `tempfiles` is to help you. The program accepts a flag `--writableDir` which expects `tempfiles` to be given to it. If `tempfiles` does not exist, you must specify the `--writabledir` flag with any folder/directory that can be iteratively written into while HORNET runs.
 
-**NOTE**, the HORNET software requires a number of Python modules which may or may not be available to you already. To install the required modules, please execute the following command, where `requirements.txt` is in the `hornet` folder:
+**NOTE**, the HORNET software requires a number of Python modules which may or may not be available to you already. To install the required modules, please execute the following command, where `requirements.txt` is in the `HORNET` folder:
 ```unix
 pip install -r requirements.txt
 ```
