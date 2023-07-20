@@ -97,8 +97,8 @@ where the second value in each comma-separated argument corresponds to the pheno
 Certain aspects of the command given to HORNET change when the eQTL GWAS data is directly from GTEx. Here is the basic command to give HORNET in this case:
 
 ```unix
-python hornet.py --eQTLGWAS testdata/GTEx \
- --phenoGWAS testdata/AD_Jansen_etal.txt.gz \
+python hornet.py --eQTLGWAS data/testdata/GTEx \
+ --phenoGWAS data/testdata/AD_Jansen_etal.txt.gz \
  --LDRef data/ldref/1kg3EUR \
  --isRawGTEx True \
  --snpLabels gtex,SNP \
