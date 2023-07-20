@@ -78,9 +78,8 @@ If the eQTL GWAS summary data is not from GTEx, HORNET must be told the followin
 An example command using the eQTLGen GWAS data and AD is this:
 
 ```unix
-python hornet.py \ 
- --eQTLGWAS testdata/eQTLGen \
- --phenoGWAS testdata/AD_Jansen_etal.txt.gz \
+python hornet.py --eQTLGWAS data/testdata/eQTLGen \
+ --phenoGWAS data/testdata/AD_Jansen_etal.txt.gz \
  --LDRef data/ldref/1kg3EUR \
  --isRawGTEx False \
  --snpLabels SNP,SNP \
@@ -89,7 +88,7 @@ python hornet.py \
  --effectAlleles AssessedAllele,A1 \
  --eQTLGeneLabel Gene \
  --eQTLGeneBP GenePos \
- --out AD_blood
+ --out ./AD_blood
 ```
 
 where the second value in each comma-separated argument corresponds to the phenotype (AD) and the first to the eQTL GWAS data. See all files in the `data/ldref/` directory if you want to choose a different 1kg Phase 3 population as the LD reference panel.
@@ -98,8 +97,7 @@ where the second value in each comma-separated argument corresponds to the pheno
 Certain aspects of the command given to HORNET change when the eQTL GWAS data is directly from GTEx. Here is the basic command to give HORNET in this case:
 
 ```unix
-python hornet.py \ 
- --eQTLGWAS testdata/GTEx \
+python hornet.py --eQTLGWAS testdata/GTEx \
  --phenoGWAS testdata/AD_Jansen_etal.txt.gz \
  --LDRef data/ldref/1kg3EUR \
  --isRawGTEx True \
@@ -109,7 +107,7 @@ python hornet.py \
  --effectAlleles gtex,A1 \
  --eQTLGeneLabel gtex \
  --eQTLGeneBP gtex \
- --out AD_frontal_cortex
+ --out ./AD_frontal_cortex
 ```
 
 Here, all arguments indicating column names that correspond to the eQTL GWAS data set were replaced with `gtex`. The key argument is switching `-isRawGTEx` from False to True. This tells HORNET all it needs to load the data. Raw GTEx summary data do not contain rsIDs, which HORNET will automatically add using mapfiles in the `data/maps/1kgPhase3maps/` directory. 
