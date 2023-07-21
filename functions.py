@@ -16,6 +16,7 @@ import random
 import pandas
 import numpy
 import math
+import matplotlib.pyplot
 
 ##################################################################################################################################################
 # so-called lower-level functions
@@ -1322,9 +1323,9 @@ def callDelete():
 def callPlink():
     sys=platform.system()
     if (sys=='Linux') | (sys=='Darwin'):
-        call_='./plinkdir/plink'
+        call_='./plinkdir/linux/plink'
     elif sys=='Windows':
-        call_='plinkdir/plink.exe'
+        call_='plinkdir/windows/plink.exe'
     return call_
 
 def findOutcomeSignals(dataPheno,ldRefDir,writableDir,outcomeClumpingKBWindow,outcomeClumpingPthreshold,outcomeClumpingR2):
@@ -1622,8 +1623,8 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
             del tm
             return # exit function and move to next CHR
     ###
-    progs=list(numpy.linspace(0,len(geneGroups),10)); progs=[int(progs[x]) for x in range(0,len(progs))] # for progress printing
-    thingsMonitored={}; outerDict={}
+        progs=list(numpy.linspace(0,len(geneGroups),10)); progs=[int(progs[x]) for x in range(0,len(progs))] # for progress printing
+        thingsMonitored={}; outerDict={}
     for ogene in range(0, len(geneGroups)): # 0, len(geneGroups)
         thingsToMonitor={}
         ############################################################### start top 1/3rd (preparing data) (avg ~7 seconds per gene group)
@@ -1835,7 +1836,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         sparsePrecisionSqrt=v@numpy.diag(1/w**0.5)@v.T
         thingsToMonitor['alphaToMakeLDMatPosDef']=alpha
         ############################################################### end middle 1/3rd (correlations and imputation)
-        
+
         ############################################################### start final 1/3rd (MR and saving data) (avg ~2 seconds per gene group)
         # organizing data
         bx=numpy.array(newX); by=reshaped['phenoZ'].values; bx0=bx.copy(); by0=by.copy()
@@ -1898,7 +1899,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
                 UV=numpy.delete(UV,0); UV=UV.reshape((p,1)) # drop the 1 for Corr(by,by)
         
         # add intercept-relevant terms for MRJones
-        bx_=numpy.column_stack(([1]*m,bx)); 
+        bx_=numpy.column_stack(([1]*m,bx)); bx0_=numpy.column_stack(([1]*m,bx0)); 
         UU_=numpy.column_stack(([0]*p,UU)); UU_=numpy.row_stack(([0]*(p+1),UU_))
         UV_=numpy.row_stack((0,UV))
         ### shrinking of UU and UV to make sure they don't introduce big problems in causal estimation
@@ -1925,11 +1926,16 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         tauvec=numpy.concatenate((t1,t2,t3,t4))
         n=reshaped['geneN'].values; n=numpy.nanmedian(n)
         ### if you want to fix alpha at a certain value to make it faster
-        out=MRJones(by0,bx0,ld0og,UU,UV,lamvec=lamvec,tauvec=tauvec,rho_theta=3/2)
+        out=MRJones(by0,bx0_,ld0og,UU_,UV_,lamvec=lamvec,tauvec=tauvec,rho_theta=3/2)
         # out=MRJones(by,bx,ld0,UU,UV,lamvec=lamvec,tauvec=tauvec)
         deltas=out['gamma']
-        finalEsts=out['theta']
+        finalEsts=out['theta']; v=(by.squeeze()-bx0_@finalEsts.squeeze()); r2=1-v.T@v/(by.squeeze().T@by.squeeze())
         estsVars=out['covg']
+        if finalEsts[0]!=0:
+            finalEsts=finalEsts[1:]
+            estsVars=estsVars[1:,:][:,1:]
+        else:
+            finalEsts=finalEsts[1:]
         thingsToMonitor['nNonzeroMRJonesDeltas']=sum(deltas!=0)
         # if all(deltas!=0):
         #     continue
@@ -1994,20 +2000,20 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
             paraDf=pandas.merge(paraDf,toAdd,left_on='Gene',right_on='Gene')
         else:
             keep=numpy.ones((bx.shape[0],),dtype='bool') # if not subsetting IV set further
-            # Zr=numpy.corrcoef(sparsePrecision@bx[:,mask],rowvar=False)
-            # chistats=numpy.diag(bx[:,mask]@numpy.linalg.inv(Zr)@bx[:,mask].T)
-            # df_=sum(mask)
-            # keep=[1-stats.chi2.cdf(chistats[x],df_)<(5e-5) for x in range(0,chistats.shape[0])]
-            Rinvkeep=ld0[keep,:][:,keep]
-            Rinvkeep=regularizeLD(Rinvkeep,int(Rinvkeep.shape[0]/4),Rinvkeep.shape[0]+1,0.1)[0]            
-            Rinvkeep=numpy.linalg.inv(Rinvkeep)
-            # re-perform evaluation of IVs
-            # bootsel=True if sum(keep)<50 else False
-            bootsel=False # causes problems
-            p1,p2,p3,p4,p5=imrbee(bx[keep,:][:,mask],by[keep],UU[mask,:][:,mask],UV[mask],VV,Rinvkeep,ld0[keep,:][:,keep],0.05/sum(keep),boot=bootsel)
-            p1=p1[1:]; p2=p2[1:,:][:,1:] # remove intercept-relevant terms 
-            toAdd=pandas.DataFrame({'Gene': numpy.array(cn_)[mask].tolist(), 'MRBEEPosSelEst': p1.squeeze(), 'MRBEEPosSelSE': numpy.diag(p2)**0.5})
-            paraDf=pandas.merge(paraDf,toAdd,how="outer",left_on='Gene',right_on='Gene')
+        # Zr=numpy.corrcoef(sparsePrecision@bx[:,mask],rowvar=False)
+        # chistats=numpy.diag(bx[:,mask]@numpy.linalg.inv(Zr)@bx[:,mask].T)
+        # df_=sum(mask)
+        # keep=[1-stats.chi2.cdf(chistats[x],df_)<(5e-5) for x in range(0,chistats.shape[0])]
+        Rinvkeep=ld0[keep,:][:,keep]
+        Rinvkeep=regularizeLD(Rinvkeep,int(Rinvkeep.shape[0]/4),Rinvkeep.shape[0]+1,0.1)[0]            
+        Rinvkeep=numpy.linalg.inv(Rinvkeep)
+        # re-perform evaluation of IVs
+        # bootsel=True if sum(keep)<50 else False
+        bootsel=False # causes problems
+        p1,p2,p3,p4,p5=imrbee(bx[keep,:][:,mask],by[keep],UU[mask,:][:,mask],UV[mask],VV,Rinvkeep,ld0[keep,:][:,keep],0.05/sum(keep),boot=bootsel)
+        p1=p1[1:]; p2=p2[1:,:][:,1:] # remove intercept-relevant terms 
+        toAdd=pandas.DataFrame({'Gene': numpy.array(cn_)[mask].tolist(), 'MRBEEPosSelEst': p1.squeeze(), 'MRBEEPosSelSE': numpy.diag(p2)**0.5})
+        paraDf=pandas.merge(paraDf,toAdd,how="outer",left_on='Gene',right_on='Gene')
         # estimate gene expression heritabilities and numbers of SNPs with nonzero associations with gene expression (from theory)
         # eps=[sum(abs(bx[:,__])>2) for __ in range(0,bx.shape[1])] # estimates of beta mixture proportions (see next line) (proportions of nonzero true associations with gene exp)
         # eps=numpy.array(eps)/bx.shape[0]
@@ -2046,6 +2052,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         cisEstNaive=((numpy.diag(bx.T@bx)-1/medns)/bx.shape[0]-1)*nclumps/medns # medns is the median sample sizes for each gene
         toAdd=pandas.DataFrame({'Gene': cn_, 'nClumps': nclumps, 'h2CisEstNaive': cisEstNaive})
         paraDf=pandas.merge(paraDf,toAdd,left_on='Gene',right_on='Gene')
+        paraDf['MRJonesR2']=r2
         # pretty sure h2 cannot be reliably estimated from the data because bx=bhat*nk/sigk where I do not know sigk and there is evidence that it is not 1.
         
         # d1['data']=reshaped # probably don't want to save the data ... will take up a lot of memory
@@ -2053,11 +2060,33 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         d1['data']={'Gene': cn_, 'GeneBP': gl, 'IVs': reshaped['geneSNP'].values.tolist()}
         if saveData:
             d1['bX']=bx; d1['by']=by; d1['UU']=UU; d1['UV']=UV; d1['regLD']=ld0
+        paraDf.index=paraDf['Gene']; paraDf=paraDf.reindex(cn_)
         d1['meta']=paraDf # put whole data frame
         outerDict[ggKeys[ogene]]=d1
         thingsMonitored[ggKeys[ogene]]=thingsToMonitor # the key is the key for the group in geneGroups
+        ### MN networks
+        edgeDict={}
+        if r2>networkR2Thres: # only make them for loci with substantial variance explained
+            XX=numpy.column_stack((by,bx))
+            XXSE=numpy.ones(XX.shape)
+            Rnoise=numpy.eye(bx.shape[1]+1); Rnoise[1:,1:]=UU; Rnoise=posDefifyCorrMat(Rnoise)[0]
+            net=entropy_mcp_spearman_sampling(XX,XXSE,Rnoise/10) # make Rnoise small
+            c1=sum(sum(numpy.isnan(net['Theta'])))>0
+            c2=sum(sum(numpy.isnan(net['Theta_Alt'])))>0
+            if (c1==True) & (c2==False):
+                edges=(net['Theta_Alt']!=0).astype(int)
+            elif (c1==False) & (c2==True):
+                edges=(net['Theta']!=0).astype(int)
+            elif (c1==False) & (c2==False):
+                edges=(net['Theta']!=0).astype(int)
+            else: # could not conpute network
+                edges=numpy.zeros(XX.shape)
+            numpy.fill_diagonal(edges,0)
+        else:
+            edges=numpy.zeros((bx.shape[1]+1,bx.shape[1]+1))
+        edgeDict['group'+str(ogene)]=edges
         ############################################################### final 1/3rd (MR and saving data)
-    return thingsMonitored,outerDict
+    return thingsMonitored,outerDict,edgeDict
 
 def UVMRworkhorse(merged,writableDir,ldRefDir,LDWindowMb=1,LDMaxInWindow=0.5,eQTLInOtherWindowP=5e-5,IVP=0.025,minNumIVs=10,LDWithinIVSetMax=0.9,
                  restrictToOutcomeSignals=True,outcomeSignalsWithinXMb=1):
