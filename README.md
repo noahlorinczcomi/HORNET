@@ -88,6 +88,7 @@ python hornet.py --eQTLGWAS data/testdata/eQTLGen \
  --effectAlleles AssessedAllele,A1 \
  --eQTLGeneLabel Gene \
  --eQTLGeneBP GenePos \
+ --networksInTopKLoci 10 \
  --out ./AD_blood
 ```
 
@@ -107,6 +108,7 @@ python hornet.py --eQTLGWAS data/testdata/GTEx \
  --effectAlleles gtex,A1 \
  --eQTLGeneLabel gtex \
  --eQTLGeneBP gtex \
+ --networksInTopKLoci 10 \
  --out ./AD_frontal_cortex
 ```
 
@@ -119,5 +121,5 @@ python hornet.py --help
 ```
 
 # HORNET Results
-Assume we ran the above command for GTEx data. This will put causal estimates into the `AD_frontal_cortex_results.txt` file in the `hornet` directory. Other filepaths can be specified by changing the argument given to the `--out` flag. HORNET will also write out a file named `AD_frontal_cortex_diagnostics.txt`, which contains information related to missingness and imputation, the initial size of the gene network, the size of the IV set after applying various QC, etc.
+Assume we ran the above command for GTEx data. This will put causal estimates into the `AD_frontal_cortex_results.txt` file in the `HORNET` directory. Other filepaths can be specified by changing the argument given to the `--out` flag. HORNET will also write out a file named `AD_frontal_cortex_diagnostics.txt`, which contains information related to missingness and imputation, the initial size of the gene network, the size of the IV set after applying various QC, etc. Plots of regulatory networks will be written to the `HORNET/plots` directory under the names `<x>_graph.png` for the top `--networksInTopKLoci` loci, where `<x>` is the Ensembl gene ID of the lead gene. HORNET will choose the top `--networksInTopKLoci` loci as those with the largest variance explained, provided variance explained values are greater than `--networkR2Thres`, which defaults to 0.05.
 
