@@ -2,6 +2,7 @@
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 from functions import *
+from MNet import * # this is a source file in the HORNET directory
 import argparse
 
 parser=argparse.ArgumentParser(prog='HORNET: Genome-wide robust multivariable MR with gene expression',
@@ -51,6 +52,8 @@ parser.add_argument('--adjustSEsForInflation',action='store',type=str,default='y
 parser.add_argument('--saveRawData',action='store',type=str,default='false',help='(Optional) One of True or False. Should the raw data used in multivariable MR be saved? This includes association estimates with each gene in a group, their standard errors, correspondingly the same for the outcome phenotype, and the estimated LD matrix.')
 parser.add_argument('--out',action='store',type=str,default='results',help='(Optional) filepath without extension of location in which results should be written, in tab-separated .txt format. The default is results. Note that a tab-separated file named diagnostics.txt will automatically be written. This file contains information about the performance of multivariable MR.')
 parser.add_argument('--iterativelySave',action='store',type=str,default='true',help='(Optional) Should results be saved iteratively as each chromosome is completed? This is helpful if you anticipate the analysis may take a relatively long time and you do not want to lose progress in case your access to the machine it is running on expires. The default is True.')
+### creating networks
+parser.add_argument('--networksInTopKLoci',action='store',type=int,default=10,help='(Optional) You can specify the number of top loci in which you would like to use the MGG method (Yang et al 2023) to construct causal regulatory gene networks. The default is 10.')
 ### flags related to what is printed or not
 parser.add_argument('--silence',action='store',type=str,default='no',help='(Optional) Should warnings about the size of the CHP window outside of the target locus be ignored? Put "true" or "yes". The default is "no".')
 ### done
@@ -136,6 +139,7 @@ runningres=pandas.DataFrame() # to be filled in
 runningdiagnostics=pandas.DataFrame() # to be filled in
 bim=pandas.read_csv(ldRefDir+'.bim',sep='\t',names=['chr','rsid','x','bp','a1','a2']) # for figuring out which chromosome is being used later
 infls=list()
+edgeLists={}
 print('Beginning the analysis')
 for _ in range(0, len(os.listdir(dirGene))):
     t0=time.perf_counter() # start timer
@@ -152,13 +156,15 @@ for _ in range(0, len(os.listdir(dirGene))):
     else:
         geneGroups,ggKeys,lens,usedGenes=defGeneGroups(q0geneGroups,merged)
     # [print(geneGroupFinder(geneGroups,candidateGenes[i],isGtex=True if isRawGTEx else False)) for i in range(0,len(candidateGenes))]
-    thingsMonitored,outerDict=MVMRworkhorse(merged,geneGroups,ggKeys,writableDir=writableDir,ldRefDir=ldRefDir,isGtex=isRawGTEx,
-                                            analysisOnlyInOutcomeLoci=analysisInPhenotypeLoci,outcomeLociMbWindow=outcomeLociMbWindow,
-                                            ldUpperLimit=ldUpperLimit, ldOtherLociOtherPt=ldOtherLociOtherPt,ldOtherLociR2=ldOtherLociR2,
-                                            ldOtherLociWindow=ldOtherLociWindow, q0Correls=q0Correls,nMinCorrels=nMinCorrels,jointChiGenesP=jointChiGenesP,
-                                            assumedMissingMean=assumedMissingMean,opAlpha=opAlpha,verbose=verbose,nMinIVs=nMinIVs,
-                                            hessMinScale=hessMinScale,silence=silence, UniMRIVPThreshold=UniMRIVPThreshold, candidateGenes=candidateGenes,
-                                            assumeNoSampleOverlap=assumeNoSampleOverlap,shrinkBiasCorrection=shrinkBiasCorrection,impute=impute,saveData=saveData)
+    thingsMonitored,outerDict,edgeD=MVMRworkhorse(merged,geneGroups,ggKeys,writableDir=writableDir,ldRefDir=ldRefDir,isGtex=isRawGTEx,
+                                                  analysisOnlyInOutcomeLoci=analysisInPhenotypeLoci,outcomeLociMbWindow=outcomeLociMbWindow,
+                                                  ldUpperLimit=ldUpperLimit, ldOtherLociOtherPt=ldOtherLociOtherPt,ldOtherLociR2=ldOtherLociR2,
+                                                  ldOtherLociWindow=ldOtherLociWindow, q0Correls=q0Correls,nMinCorrels=nMinCorrels,jointChiGenesP=jointChiGenesP,
+                                                  assumedMissingMean=assumedMissingMean,opAlpha=opAlpha,verbose=verbose,nMinIVs=nMinIVs,
+                                                  hessMinScale=hessMinScale,silence=silence, UniMRIVPThreshold=UniMRIVPThreshold, candidateGenes=candidateGenes,
+                                                  assumeNoSampleOverlap=assumeNoSampleOverlap,shrinkBiasCorrection=shrinkBiasCorrection,impute=impute,saveData=saveData,
+                                                 networkR2Thres=0.05)
+    edgeLists['CHR'+str(chromosome)]=edgeD # save edges
     if len(outerDict)==0:
         continue
     res=organizeMetaResults(outerDict); res['CHR']=chromosome # store results
@@ -195,8 +201,23 @@ out=subprocess.call([delcall, writableDir+"/outcomeplinkout.clumped"],stdout=sub
 out=subprocess.call([delcall, writableDir+"/outcomeplinkout.log"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
 out=subprocess.call([delcall, writableDir+"/outcomePsout.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
 
-# network construction
-## steps:
-# 1) write out file to be read in by R
-# 2) execute R program
-# 3) 
+### network construction (done in Python)
+# first find top args.networksInTopKLoci loci
+vals=numpy.sort(runningres['MRJonesR2'].unique())[::-1][:(args.networksInTopKLoci-1)] # top args.networksInTopKLoci r2 values 
+for _ in range(0,len(vals)):
+    dcut=runningres[runningres['MRJonesR2']==vals[_]]
+    genes=dcut['Gene'].values.tolist()
+    chrom=dcut['CHR'][0]
+    grp=dcut['groupID'][0]
+    edges=edgeLists['CHR'+str(chrom)][grp]
+    G=addEdges(edges)
+    G=nx.relabel_nodes(G,mapping=mapNodeNames(edges,flatten_list(['disease',genes])))
+    fig=matplotlib.pyplot.figure()
+    nx.draw(G, with_labels=True,ax=fig.add_subplot())
+    fig.savefig('plots/'+leadgene+'_graph.png',dpi=500)
+    ### run if using as an example
+    # edges=numpy.array([[0,1,0],[1,0,1],[0,1,0]])
+    # genes=['geneA','geneB']
+    # leadgene='geneA'
+
+
