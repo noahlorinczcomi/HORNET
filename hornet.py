@@ -54,6 +54,7 @@ parser.add_argument('--out',action='store',type=str,default='results',help='(Opt
 parser.add_argument('--iterativelySave',action='store',type=str,default='true',help='(Optional) Should results be saved iteratively as each chromosome is completed? This is helpful if you anticipate the analysis may take a relatively long time and you do not want to lose progress in case your access to the machine it is running on expires. The default is True.')
 ### creating networks
 parser.add_argument('--networksInTopKLoci',action='store',type=int,default=10,help='(Optional) You can specify the number of top loci in which you would like to use the MGG method (Yang et al 2023) to construct causal regulatory gene networks. The default is 10.')
+parser.add_argument('--networkR2Thres',action='store',type=float,default=0.05,help='(Optional) Regulatory networks and their graphs will only be estimated for loci explaining at least as much as this proportion of variance in the outcome. The default is 0.05.')
 ### flags related to what is printed or not
 parser.add_argument('--silence',action='store',type=str,default='no',help='(Optional) Should warnings about the size of the CHP window outside of the target locus be ignored? Put "true" or "yes". The default is "no".')
 ### done
