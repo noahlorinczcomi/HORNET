@@ -121,7 +121,7 @@ python hornet.py --help
 ```
 
 # HORNET Results
-Assume we ran the above command for GTEx data. We will have the following results:
+Assume we ran the above command for GTEx data. We gave the `--out` flag the value './AD_frontal_cortex'. This will give us the following results:
 1. `HORNET/AD_frontal_cortex_results.txt`
     * Causal estimates and model fit
     * Other filepaths can be specified by changing the argument given to the `--out` flag
