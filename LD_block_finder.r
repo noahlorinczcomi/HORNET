@@ -50,3 +50,5 @@ zeroifyNonBlocks=function(M,cs) {
   }
   Mc
 }
+
+# example: block_cutpoints=blockify(R) # R is the LD matrix
