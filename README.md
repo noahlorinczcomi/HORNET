@@ -6,7 +6,7 @@ HORNET performs multivariable Mendelian Randomization (MR) using the MR with JOi
 3. Lorincz-Comi, N., Yang, Y., Li, G., & Zhu, X. (2023). MRBEE: A novel bias-corrected multivariable Mendelian Randomization method. *bioRxiv*, 2023-01. DOI: https://doi.org/10.1101/2023.01.10.523480
 
 # Downloading HORNET
-This tutorial will use the Linux terminal to perform all operations and Python v3.7 must be accessible from the command line. Note that later versions of Python may become incompatible with HORNET as some of its dependencies are updated and certain functionality may become deprecated. We therefore recommend using Python v3.7. 
+This tutorial will use the Linux terminal to perform all operations and Python v3.7.0 must be accessible from the command line. Note that later versions of Python may become incompatible with HORNET as some of its dependencies are updated and certain functionality may become deprecated. We therefore recommend using Python v3.7.0. 
 
 Start by cloning the HORNET Github repository like this:
 
