@@ -1,6 +1,9 @@
 import numpy
 import scipy
 import networkx as nx
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib import pyplot
 
 def entropyloss(A,B,eps=1e-8):
     C=A@B
