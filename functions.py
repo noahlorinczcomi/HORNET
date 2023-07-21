@@ -16,7 +16,6 @@ import random
 import pandas
 import numpy
 import math
-import matplotlib.pyplot
 
 ##################################################################################################################################################
 # so-called lower-level functions
