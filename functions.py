@@ -1928,7 +1928,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         out=MRJones(by0,bx0_,ld0og,UU_,UV_,lamvec=lamvec,tauvec=tauvec,rho_theta=3/2)
         # out=MRJones(by,bx,ld0,UU,UV,lamvec=lamvec,tauvec=tauvec)
         deltas=out['gamma']
-        finalEsts=out['theta']; v=(by.squeeze()-bx0_@finalEsts.squeeze()); r2=1-v.T@v/(by.squeeze().T@by.squeeze())
+        finalEsts=out['theta']; v=(by.squeeze()-bx0_@finalEsts.squeeze()); r2mr=1-v.T@v/(by.squeeze().T@by.squeeze())
         estsVars=out['covg']
         if finalEsts[0]!=0:
             finalEsts=finalEsts[1:]
@@ -2051,7 +2051,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         cisEstNaive=((numpy.diag(bx.T@bx)-1/medns)/bx.shape[0]-1)*nclumps/medns # medns is the median sample sizes for each gene
         toAdd=pandas.DataFrame({'Gene': cn_, 'nClumps': nclumps, 'h2CisEstNaive': cisEstNaive})
         paraDf=pandas.merge(paraDf,toAdd,left_on='Gene',right_on='Gene')
-        paraDf['MRJonesR2']=r2
+        paraDf['MRJonesR2']=r2mr
         # pretty sure h2 cannot be reliably estimated from the data because bx=bhat*nk/sigk where I do not know sigk and there is evidence that it is not 1.
         
         # d1['data']=reshaped # probably don't want to save the data ... will take up a lot of memory
@@ -2065,7 +2065,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         thingsMonitored[ggKeys[ogene]]=thingsToMonitor # the key is the key for the group in geneGroups
         ### MN networks
         edgeDict={}
-        if r2>networkR2Thres: # only make them for loci with substantial variance explained
+        if r2mr>networkR2Thres: # only make them for loci with substantial variance explained
             XX=numpy.column_stack((by,bx))
             XXSE=numpy.ones(XX.shape)
             Rnoise=numpy.eye(bx.shape[1]+1); Rnoise[1:,1:]=UU; Rnoise=posDefifyCorrMat(Rnoise)[0]
