@@ -12,7 +12,7 @@ nonconsecutive=function(x,minsize=5) {
 }
 
 blockFit=function(M,cs,penNBlocks=TRUE) {
-  n=nrow(M);pen=c();
+  n=nrow(M);pen=c();if(length(cs)==2) return(0)
   for(i in 2:length(cs)) {
     ix1=cs[i-1];ix2=cs[i]
     b=M[ix1:ix2,ix1:ix2]^2
