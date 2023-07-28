@@ -43,9 +43,10 @@ blockify=function(M,maxBlocks=10,minsize=10,...) {
 }
 
 zeroifyNonBlocks=function(M,cs) {
-  Mc=M*0
+  Mc=M*0;
   for(i in 2:length(cs)) {
-    ix=cs[i-1]:cs[i]
+    ix=cs[i-1]:(cs[i]-1)
+    if(max(ix)==(max(cs)-1)) ix=c(ix,max(cs))
     Mc[ix,ix]=M[ix,ix]
   }
   Mc
