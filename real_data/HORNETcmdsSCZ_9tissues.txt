@@ -1,5 +1,3 @@
-cd hornet
-
 python hornet.py \
  --eQTLGWAS <filepath to CHR-specific eQTL summary data files> \
  --phenoGWAS <filepath to schizophrenia GWAS summary data file> \
