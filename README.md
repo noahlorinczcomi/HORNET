@@ -10,7 +10,7 @@ The HORNET, MR-Jones, and MRBEE papers can be found from the following reference
 # Downloading HORNET
 This tutorial will use the Linux terminal to perform all operations and Python v3.7.0 must be accessible from the command line. Note that later versions of Python may become incompatible with HORNET as some of its dependencies are updated and certain functionality may become deprecated. We therefore recommend using Python v3.7.0. 
 
-Start by cloning the HORNET Github repository like this:
+Start by cloning this repository:
 
 ```unix
 git clone https://github.com/noahlorinczcomi/HORNET.git
