@@ -129,7 +129,7 @@ Assume we ran the above command for GTEx data. We gave the `--out` flag the valu
     * Other filepaths can be specified by changing the argument given to the `--out` flag
 2. `HORNET/AD_frontal_cortex_diagnostics.txt`
     * Summary information related to missingness and imputation, the initial size of the gene network, the size of the IV set after applying various QC, etc.
-3. `HORNET/<lead gene ID>_graph.png`
+3. `HORNET/plots/<lead gene ID>_graph.png`
     * Plots of gene regulatory networks that include the disease outcome, too
     * Only networks for the top `--networksInTopKLoci` loci will be estimated and plotted
     * HORNET will choose the top `--networksInTopKLoci` loci as those with the largest variance explained, provided variance explained values are greater than `--networkR2Thres`, which defaults to 0.05.
