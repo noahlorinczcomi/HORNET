@@ -61,7 +61,7 @@ Now, in the `HORNET` directory, you should see the following folders and files:
 # Downloading summary GWAS data
 Generally, we want to use eQTL GWAS summary statistics that contain estimates of association between SNPs and the expression of all genes within +-1Mb in a specific tissue. Since the scale of these data can be enormous when combined across the entire measurable genome, one file for each chromosome should exist in a directory/folder by themselves.
 
-For this tutorial, we have already downloaded GWAS summary data for Alzheimer's disease (AD) from Jansen et al. (2019) and gene expression data in blood from the eQTLGen Consortium (https://www.eqtlgen.org/) and in frontal cortical tissue from the GTEx Consortium (https://gtexportal.org/home/) for chromsomes 1 and 2. 
+For this tutorial, we have already downloaded GWAS summary data for Alzheimer's disease (AD) from [Jansen et al. (2019)](https://doi.org/10.1038/s41588-018-0311-9) and gene expression data in blood from the [eQTLGen Consortium](https://www.eqtlgen.org/) and in frontal cortical tissue from the [GTEx Consortium](https://gtexportal.org/home/) for chromsomes 1 and 2. *Note*, you can remove these data sets from the `HORNET/` directory to save space after completing this tutorial.
 
 Gene expression GWAS data are stored in the `testdata/` directory under the names `eQTLGen/eQTLGen_blood_CHR<1,2>.txt.gz` and `GTEx/GTEx_frontal_cortex_CHR<1,2>.txt.gz`, where data sets from these two sources are placed into separate folders for reasons that will become apparent later.
 
