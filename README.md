@@ -59,7 +59,7 @@ Now, in the `HORNET` directory, you should see the following folders and files:
 --->
 
 # Downloading summary GWAS data
-Generally, we want to use eQTL GWAS summary statistics that represent estimates of association between SNPs and the expression of all genes within +-1Mb in a specific tissue. Since the scale of these data can be enormous when combined across the entire measurable genome, one file for each chromosome should exist in a directory/folder by themselves.
+Generally, we want to use eQTL GWAS summary statistics that contain estimates of association between SNPs and the expression of all genes within +-1Mb in a specific tissue. Since the scale of these data can be enormous when combined across the entire measurable genome, one file for each chromosome should exist in a directory/folder by themselves.
 
 For this tutorial, we have already downloaded GWAS summary data for Alzheimer's disease (AD) from Jansen et al. (2019) and gene expression data in blood from the eQTLGen Consortium (https://www.eqtlgen.org/) and in frontal cortical tissue from the GTEx Consortium (https://gtexportal.org/home/) for chromsomes 1 and 2. 
 
