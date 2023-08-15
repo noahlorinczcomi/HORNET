@@ -8,7 +8,7 @@ The HORNET, MR-Jones, and MRBEE papers can be found from the following reference
 3. Lorincz-Comi, N., Yang, Y., Li, G., & Zhu, X. (2023). MRBEE: A novel bias-corrected multivariable Mendelian Randomization method. *bioRxiv*, 2023-01. DOI: https://doi.org/10.1101/2023.01.10.523480
 
 # Downloading HORNET
-This tutorial will use the Linux terminal to perform all operations and Python v3.7.0 must be accessible from the command line. Note that later versions of Python may become incompatible with HORNET as some of its dependencies are updated and certain functionality may become deprecated. We therefore recommend using Python v3.7.0. 
+This tutorial will use the Linux terminal to perform all operations and Python $\ge$v3.7.0 must be accessible from the command line. Earlier versions of Python may have problems. 
 
 Start by cloning this repository:
 
