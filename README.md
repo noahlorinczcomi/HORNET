@@ -22,10 +22,10 @@ Next, you must copy the `hornet_data` tarball (2.9GB) from our public web page u
 wget -O hornet_data.tar http://hal.case.edu/~njl96/hornet_data.tar.gz
 tar -xvf hornet_data.tar
 rm hornet_data.tar
-mkdir tempfiles
+mkdir tempfiles plots
 ```
 
-The creation of `tempfiles` is to help you. The program accepts a flag `--writableDir` which expects `tempfiles` to be given to it. If `tempfiles` does not exist, you must specify the `--writabledir` flag with any folder/directory that can be iteratively written into while HORNET runs.
+The creation of `tempfiles/` is to help you. The program accepts a flag `--writableDir` which expects `tempfiles` to be given to it. If `tempfiles` does not exist, you must specify the `--writabledir` flag with any folder/directory that can be iteratively written into while HORNET runs. The creation of `plots/` is also to help you. HORNET will try saving plots of network graphs in the `plots/` folder by default. You can change this by giving something else to the `--networkGraphsOut` flag.
 
 **NOTE**, the HORNET software requires a number of Python modules which may or may not be available to you already. To install the required modules, please execute the following command, where `requirements.txt` is in the `HORNET` folder:
 ```unix
