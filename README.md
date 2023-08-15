@@ -23,6 +23,7 @@ wget -O hornet_data.tar http://hal.case.edu/~njl96/hornet_data.tar.gz
 tar -xvf hornet_data.tar
 rm hornet_data.tar
 mkdir tempfiles plots
+chmod +x ./plinkdir/linux/plink
 ```
 
 The creation of `tempfiles/` is to help you. The program accepts a flag `--writableDir` which expects `tempfiles` to be given to it. If `tempfiles` does not exist, you must specify the `--writabledir` flag with any folder/directory that can be iteratively written into while HORNET runs. The creation of `plots/` is also to help you. HORNET will try saving plots of network graphs in the `plots/` folder by default. You can change this by giving something else to the `--networkGraphsOut` flag.
