@@ -62,7 +62,10 @@ def MCPthreshold(S,lam,ga=3):
     return S2
 
 def cov2cor(A):
-    D=numpy.diag(A); D=numpy.diag(1/D**0.5)
+    A_=A
+    d=numpy.diag(A_); 
+    mask=d<0; d[mask]=1
+    D=numpy.diag(1/d**0.5)
     return D@A@D
 
 def matrixsqrt(A):
@@ -87,7 +90,7 @@ def rowMedian(A):
     g=[numpy.median(A[_,:]) for _ in range(0,A.shape[0])]
     return g
 
-def entropy_mcp_spearman_sampling(BETA,SE,Rnoise,lamvec=numpy.linspace(3,12,10)/100,
+def entropy_mcp_spearman_sampling(BETA,SE,Rnoise,lamvec=numpy.linspace(2,15,10)/100,
                                   max_eps=0.001,max_iter=25,rho=0.25,
                                   min_eig=0.01,subtime=100,subfrac=0.66,subthres=0.95):
     m,p=BETA.shape
@@ -200,8 +203,18 @@ def addEdges(edges):
             cond=(j>=i) | (edges[i,j]==0)
             if cond:
                 continue
-            G.add_edges_from([(i,j)])
+            G.add_edges_from([(j,i)])
     return G        
+
+def colorCoreGenes(edges):
+    color_map=['powderblue']; p=edges.shape[0]
+    for node in range(1,p):
+        nodek=edges[:,node]
+        if nodek[0]==1:
+            color_map.append('tomato')
+        else: 
+            color_map.append('lightgrey') 
+    return color_map
 
 def mapNodeNames(edges,newlabs):
     p=edges.shape[0]

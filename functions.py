@@ -16,6 +16,17 @@ import random
 import pandas
 import numpy
 import math
+from MNet import * # this is a source file in the HORNET directory
+
+### optional turning off of warnings
+# numpy.seterr(divide='ignore')
+
+#def my_formatwarning(message, category, filename, lineno, line=None):
+#  print(message, category)
+#  # lineno is the line number you are looking for
+#  print('file:', filename, 'line number:', lineno)
+
+#warnings.formatwarning=my_formatwarning
 
 ##################################################################################################################################################
 # so-called lower-level functions
@@ -550,9 +561,9 @@ def soft(a,b):
 #     return A
 
 ### new MR Jones
-def MRJones(by,bX,LD,Rxx,rxy,lamvec=numpy.linspace(0.05,0.3,10),tauvec=numpy.linspace(5,25,10),rho_theta=1,rho_gamma=1,max_iter=30,max_eps=0.005,intercept=True,WIB=True,WIB_thres=5,bicfactor=3,normmax=3):
+def MRJones(by,bX,LD,Rxx,rxy,lamvec=numpy.linspace(0.05,0.3,10),tauvec=numpy.linspace(5,25,10),rho_theta=1,rho_gamma=1,max_iter=30,max_eps=0.005,intercept=True,WIB=True,WIB_thres=5,bicfactor=1,normmax=3):
     warnings.filterwarnings('ignore')
-    n=len(by.squeeze())
+    n=len(by.squeeze());
     if intercept:
         bX=numpy.column_stack(([1]*n,bX))
         Rxx=numpy.column_stack(([0]*Rxx.shape[0],Rxx)); Rxx=numpy.row_stack(([0]*(Rxx.shape[1]),Rxx))
@@ -639,12 +650,15 @@ def MRJones(by,bX,LD,Rxx,rxy,lamvec=numpy.linspace(0.05,0.3,10),tauvec=numpy.lin
             
             Btheta[:,ss,sss]=theta1.squeeze()
             Bgamma[:,ss,sss]=gamma1.squeeze()
-            r=(by.squeeze()-bX@theta1-LD@gamma1)
-            varr=mad(TC@r)**2
             df1=sum(theta1!=0)
             df2=sum(gamma1!=0)
-            rss=sum(r*(Theta@r)/varr)
-            Bbic[ss,sss]=n*numpy.log(rss)+numpy.log(n)*(df1+bicfactor*df2)
+            r=(by.squeeze()-bX@theta1-LD@gamma1)
+            varr=mad(TC@r)**2
+            if varr==0: # if MRJones wanted all to be pleiotropy
+                rss=1e5 # something very large bc I never want this solution
+            else:
+                rss=sum(r*(Theta@r)/varr)
+            Bbic[ss,sss]=n*numpy.log(rss)+(numpy.log(n)+numpy.log(p)*bicfactor)*df1+(numpy.log(n)+numpy.log(n)*bicfactor)*df2
             # end for sss
     # end for ss
     istar,jstar=numpy.where(Bbic==Bbic.min()); istar=istar[0]; jstar=jstar[0] # may be multiple minimums? Choose first
@@ -971,8 +985,8 @@ def organizeMetaResults(_dict_):
         pp=pandas.DataFrame.from_dict(innerD)
         pp['groupID']=dNames[_]
         df0=pandas.concat([df0,pp])
-    df0=df0.reset_index()
-    df0=df0.drop(columns='index', axis=1)
+    #df0=df0.reset_index()
+    #df0=df0.drop(columns='index', axis=1)
     return df0
 
 def concatUniMRRes(outerDict):
@@ -1172,6 +1186,21 @@ def trace(A):
     out=numpy.sum(numpy.diag(A))
     return out
 
+# single SNP MR
+def singleSNP(bx,by,cn): # assumes Z-stat standardization
+    m=bx.shape[0];p=bx.shape[1];by=by.squeeze()
+    wald=[];waldse=[]
+    for _ in range(0,p):
+        bxp=bx[:,_].squeeze()
+        maxix=numpy.argmax(abs(bxp))
+        wald.append(by[maxix]/bxp[maxix])
+        waldse.append(1/bxp[maxix]**2)
+    wald=numpy.array(wald)
+    waldse=numpy.array(waldse)
+    ps=[2*norm.cdf(-abs(wald[_]/waldse[_]),0,1) for _ in range(0,p)]
+    dfout=pandas.DataFrame({'Gene': cn, 'SingleSNPEst': wald, 'SingleSNP_P':ps})
+    return dfout
+
 # some measures of bias in SMR 
 def perGeneSMRBias(bx,by,ld0,sparsePrecision,ogZs,UU,UV,cn,IVPThresh=5e-5,r2Thresh=0.25,minNIVs=10):
     # ogZs: original Z-stats in case a transformation of bx was made
@@ -1301,14 +1330,14 @@ def adjustInflation(res,infl):
     # want to adjust (Est/SE), (IVW_MVMR_Est/IVW_MVMR_SE), (IVW_UNIMR_Est/IVW_UNIMR_SE), (UniMRBEEEsts/UniMRBEESEs),
     # (MRBEEEsts/MRBEESEs), (MRBEERidgeEst/MRBEERidgeSE), (MRBEEPosSelEst/MRBEEPosSelSE)
     res2=res.copy()
-    res2['SE']=res2['SE']*(infl**0.5)
+    res2['MRJonesSE']=res2['MRJonesSE']*(infl**0.5)
     res2['IVW_MVMR_SE']=res2['IVW_MVMR_SE']*(infl**0.5)
-    res2['IVW_UNIMR_SE']=res2['IVW_UNIMR_SE']*(infl**0.5)
-    res2['UniMRBEESEs']=res2['UniMRBEESEs']*(infl**0.5)
-    res2['MRBEESEs']=res2['MRBEESEs']*(infl**0.5)
-    res2['MRBEERidgeSE']=res2['MRBEERidgeSE']*(infl**0.5)
-    res2['MRBEEPosSelSE']=res2['MRBEEPosSelSE']*(infl**0.5)
-    res2['MRBEEHuberSE']=res2['MRBEEHuberSE']*(infl**0.5)
+    res2['IVW_UVMR_SE']=res2['IVW_UVMR_SE']*(infl**0.5)
+    res2['MRBEE_UVMR_SE']=res2['MRBEE_UVMR_SE']*(infl**0.5)
+    res2['MRBEE_MVMR_SE']=res2['MRBEE_MVMR_SE']*(infl**0.5)
+    res2['MRBEERidge_MVMR_SE']=res2['MRBEERidge_MVMR_SE']*(infl**0.5)
+    res2['MRBEEPostSelec_MVMR_SE']=res2['MRBEEPostSelec_MVMR_SE']*(infl**0.5)
+    res2['MRBEEHuber_MVMR_SE']=res2['MRBEEHuber_MVMR_SE']*(infl**0.5)
     return res2
 
 def callDelete():
@@ -1386,9 +1415,26 @@ def loadOutcomeGWASData(fp,effectAllele,z,rsid,ldRefDir):
     merged=merged[['phenoSNP','phenoEffectAllele','phenoZ']]
     return merged # this is dataPeno and 1kg merged; NOT exposure and pheno/outcome merged
 
+def rsidFinder(st):
+    # x should be a string
+    sp=st.split(':')
+    if len(sp)==1:
+        return st
+    w=['rs' in sp[_].lower() for _ in range(0,len(sp))]
+    if True in w:
+        out=sp[w.index(True)]
+    else:
+        out=float('nan')
+    return out
+
+def prepRes(res):
+    res=res[['Gene','geneBP','Est','SE','MRBEEPosSelEst','MRBEEPosSelSE','MRJonesR2','geneZ','geneSNP','snpBP','conditionalF','groupID','CHR','infl','h2CisEstNaive','nClumps','SingleSNPEst','SingleSNP_P','IVW_MVMR_Est','IVW_MVMR_SE','IVW_UNIMR_Est','IVW_UNIMR_SE','UniMRBEEEsts','UniMRBEESEs','MRBEEEsts','MRBEESEs','MRBEERidgeEst','MRBEERidgeSE','MRBEEHuberEst','MRBEEHuberSE','SMRm','SMRpleioJointPs','SMRHPmeansP','OVBiasTestP']]
+    res=res.rename(columns={'Est': 'MRJonesEst', 'SE': 'MRJonesSE','MRJonesR2':'RsquaredMRJones','geneZ': 'LeadEQTLZstatistic','geneSNP':'leadEQTL','snpBP':'leadEQTLBP','groupID':'CHRspecificGroupID','CHR':'Chromosome','infl':'nullInflation','IVW_UNIMR_Est':'IVW_UVMR_Est','IVW_UNIMR_SE':'IVW_UVMR_SE','UniMRBEEEsts':'MRBEE_UVMR_Est','UniMRBEESEs':'MRBEE_UVMR_SE','MRBEEEsts':'MRBEE_MVMR_Est','MRBEESEs':'MRBEE_MVMR_SE','MRBEERidgeEst':'MRBEERidge_MVMR_Est','MRBEERidgeSE':'MRBEERidge_MVMR_SE','MRBEEHuberEst':'MRBEEHuber_MVMR_Est','MRBEEHuberSE':'MRBEEHuber_MVMR_SE','MRBEEPosSelEst':'MRBEEPostSelec_MVMR_Est','MRBEEPosSelSE':'MRBEEPostSelec_MVMR_SE','SMRm':'SMRNumIVs','SMRHPmeansP':'SMRUnbalancedHP_P','OVBiasTestP':'SMROVBias_P'})
+    return res
+
 # function to load exposure data and merge with outcome data (separated from outcome data bc many exposure files will be loaded)
 # with specifying sample size column name
-def loadExposureGWASData(fp,effectAllele='',z='',rsid='',snpBP='',geneLabel='',geneBPLabel='',nLabel='',isRawGzippedGTEx=False,mapwd='data/maps/1kgPhase3maps'): # outcome data already filtered to 1kg SNPs
+def loadExposureGWASData(fp,effectAllele='',z='',rsid='',snpBP='',geneLabel='',geneBPLabel='',nLabel='',isRawGzippedGTEx=False,mapwd='data/maps/1kgPhase3maps',nr=1e100): # outcome data already filtered to 1kg SNPs
     dataLoaded=False;
     # If this is raw GTEx data, I already know what to expect for column names 
     if isRawGzippedGTEx==True: # I take care of all column names here
@@ -1396,10 +1442,11 @@ def loadExposureGWASData(fp,effectAllele='',z='',rsid='',snpBP='',geneLabel='',g
         import gzip
         import pyarrow # Fast reading of parquets
         file=gzip.open(fp, 'rb')
+        # speed of loading full parquet data seems to be same as loading some subset
+        # pf=pyarrow.parquet.ParquetFile(file);first_ten_rows=next(pf.iter_batches(batch_size=10));df=pa.Table.from_batches([first_ten_rows]).to_pandas()
         df=file.read()
         df=pandas.read_parquet(BytesIO(df)); dataLoaded=True
         dataGene=attachRsidToGTEx(df,mapwd=mapwd)
-        print('good 4')
         dataGene['geneZ']=dataGene['slope']/dataGene['slope_se']
         dataGene=dataGene.rename(columns={'rsID': 'geneSNP', 'phenotype_id': 'Gene', 'ALT': 'geneEffectAllele'}) # already has snpBP column from attachRsidToGTEx()
         if is_number(nLabel):
@@ -1416,7 +1463,7 @@ def loadExposureGWASData(fp,effectAllele='',z='',rsid='',snpBP='',geneLabel='',g
             sep=z.split('@',1) # user must have passed 'BETA@SE' for Z-stat column name
             uc1=[rsid,sep[0],sep[1],geneLabel,effectAllele,geneBPLabel,snpBP] # only pick out these columns from exposure GWAS data
             if dataLoaded==False:
-                dataGene=pandas.read_table(fp,sep=None,engine='python'); # load exposure GWAS data
+                dataGene=pandas.read_table(fp,sep=None,engine='python',nrows=nr); # load exposure GWAS data
             dataGene['geneZ']=dataGene[sep[0]]/dataGene[sep[1]] # create my own Z-stat column
             dataGene=dataGene.rename(columns={uc1[0]: 'geneSNP', uc1[3]: 'Gene', uc1[4]: 'geneEffectAllele', uc1[5]: 'geneBP',uc1[6]: 'snpBP'})
             if is_number(nLabel):
@@ -1434,6 +1481,8 @@ def loadExposureGWASData(fp,effectAllele='',z='',rsid='',snpBP='',geneLabel='',g
             else: 
                 dataGene=dataGene.rename(columns={nLabel: 'geneN'})
             dataGene=dataGene[['geneSNP','geneZ','Gene','geneEffectAllele','geneBP','snpBP','geneN']] # drop unneccessary columns
+    # if data is from MetaBrain, change SNP column to only contain rsIDs
+    dataGene['geneSNP']=dataGene['geneSNP'].apply(lambda x: rsidFinder(x))
     return dataGene
 
 # merge exposure and outcome data
@@ -1446,10 +1495,10 @@ def mergeExposureAndOutcomeGWAS(dataGene,dataPheno):
 
 # function to attach rsIDs to GTEx data that is in hg38 and SNPs are named as eg chr9_10536_C_T_b38
 def attachRsidToGTEx(dataGTEx,mapwd='data/maps/1kgPhase3maps'):
-    # the mapfile is in a pre-determined location that will be set when the user clones our github repo (similar to LDSC):
+    # the mapfile is in a pre-determined location that will be set when the user clones our github repo:
     # alt allele in GTEx is effect allele
-    # separate information in rsidcolumnname of dataGeneOG
-    splitted=dataGTEx['variant_id'].str.split('_',10)
+    # separate information in rsidcolumnname of dataGTEx
+    splitted=dataGTEx['variant_id'].str.split('_',n=10)
     splitted=numpy.array(splitted)
     marker_=[]; chr_=[]; bp_=[]; alt_=[]; ref_=[]
     for _ in range(0,splitted.shape[0]):
@@ -1583,12 +1632,24 @@ def defGeneGroupsByOutcome(q0geneGroups, merged, KbWindow=100,closestK=2):
     lens=[len(geneGroups[ggKeys[x]]) for x in range(0,len(ggKeys))]
     return geneGroups,ggKeys,lens,usedGenes
 
+def defineCandidateGeneGroups(merged,candidateGenes,MbWindow=2):
+    geneGroups={}; lens=[]; usedGenes=[]
+    for _ in range(0,len(candidateGenes)):
+        gbp=merged[merged['Gene']==candidateGenes[_]]['geneBP'].values[0]
+        aroundgenes=merged[abs(merged['geneBP']-gbp)<(MbWindow*1e6)]['Gene'].unique()
+        geneGroups[candidateGenes[_]]=aroundgenes
+        usedGenes.append(usedGenes)
+        lens.append(len(aroundgenes))
+    ggKeys=list(geneGroups)
+    usedGenes=flatten_list(usedGenes)
+    return geneGroups,ggKeys,lens,usedGenes
+
 # perform analysis
 def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
-              analysisOnlyInOutcomeLoci=True,outcomeLociMbWindow=1,
-              ldUpperLimit=0.5,ldOtherLociOtherPt=0.0001,ldOtherLociR2=0.1,ldOtherLociWindow=1,q0Correls=3.290527,nMinCorrels=50,
-              jointChiGenesP=5e-8,assumedMissingMean=0,opAlpha='dynamic',verbose=True,nMinIVs=50,hessMinScale=5,silence=False,
-              UniMRIVPThreshold=1e-8,candidateGenes=[],assumeNoSampleOverlap=True,shrinkBiasCorrection=True,impute=True,saveData=False):
+                  analysisOnlyInOutcomeLoci=True,outcomeLociMbWindow=1,ldUpperLimit=0.5,
+                  ldOtherLociOtherPt=0.0001,ldOtherLociR2=0.1,ldOtherLociWindow=1,q0Correls=3.290527,nMinCorrels=50,
+                  jointChiGenesP=5e-8,opAlpha='dynamic',nMinIVs=50,hessMinScale=5,silence=False,
+                  UniMRIVPThreshold=1e-8,candidateGenes='',assumeNoSampleOverlap=True,shrinkBiasCorrection=True,networkR2Thres=0.25,impute=True,saveData=False):
     # ldOtherLociOtherPt: only SNPs with P<this threshold will be considered when removing SNPs in IV set that are in LD with SNPs outside of the LD set
     # making sure the user hasn't passed anything crazy for ldOtherLociWindow
     if (ldOtherLociWindow>10) & (silence==False):
@@ -1617,13 +1678,15 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
     outcomeclumpbps=merged[merged['isOutcomeClump']==True]['snpBP'].unique() # workhorse() receives CHR-specific data, so just need BP position
     ### first, if user just wants to test a set of candidate genes, make sure this CHR has some of them, else next
     if len(candidateGenes)>0:
+        analysisOnlyInOutcomeLoci=False # perform analysis in candidateGenes loci
         tm=pandas.merge(merged,pandas.DataFrame({'Gene': candidateGenes}),left_on='Gene',right_on='Gene')
         if tm.shape[0]==0:
             del tm
-            return # exit function and move to next CHR
+            print('Candidate Genes not found in data')
+            return {}, {}, {} # exit function and move to next CHR
     ###
-        progs=list(numpy.linspace(0,len(geneGroups),10)); progs=[int(progs[x]) for x in range(0,len(progs))] # for progress printing
-        thingsMonitored={}; outerDict={}
+    progs=list(numpy.linspace(0,len(geneGroups),10)); progs=[int(progs[x]) for x in range(0,len(progs))] # for progress printing
+    thingsMonitored={}; outerDict={}; edgeDict={}
     for ogene in range(0, len(geneGroups)): # 0, len(geneGroups)
         thingsToMonitor={}
         ############################################################### start top 1/3rd (preparing data) (avg ~7 seconds per gene group)
@@ -1739,7 +1802,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         ccComplete,alpha,deco=posDefifyCorrMat(ccComplete,epsilon=1e-5) # making ccComplete positive definite via shrinkage if it is not
         thingsToMonitor['alphaToMakeMECorrelMatPosDef']=alpha # factor that off-diagonal elements of ccComplete needed to multiplied by to make it posdef
         # remove genes with norm(newX[:,j],2)^2<5m
-        toKeep=(numpy.diag(newX.T@newX)>(hessMinScale*newX.shape[0])) # technically >hessMinScale*newX.shape[0]*diag(Suu), but diag(Suu)=(1)
+        toKeep=(numpy.diag(newX.T@newX)>(hessMinScale*newX.shape[0]/2)) # technically >hessMinScale*newX.shape[0]*diag(Suu), but diag(Suu)=(1)
         if sum(toKeep)==0:
             continue
         newX=newX[:,toKeep]
@@ -1769,7 +1832,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         outDir2=writableDir+'/tempOut' # (for saving LD matrix)
         reshaped['index']=list(range(0,reshaped.shape[0])) # this is the current ordering of rows of newX
         reshaped=reshaped.sort_values(by='snpBP',ascending=True) # need to order by BP so I know order of SNPs in ldmat from PLINK 
-        newX=newX[reshaped['index'].values] # Need to make sure the data I already created (newX/bX) matches this order
+        newX=newX[reshaped['index'].values];mstart=newX.shape[0] # Need to make sure the data I already created (newX/bX) matches this order
         minBP=min(reshaped['snpBP'].values); maxBP=max(reshaped['snpBP'].values)
         thingsToMonitor['BPSpanOfIVSet']=maxBP/1e6-minBP/1e6
         
@@ -1814,6 +1877,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
             mask=((numpy.isnan(ldmat).sum(axis=0))==ldmat.shape[0])==False # create mask: True if non-missing LD; False if all missing LD (I've never seen partial missing)
             reshaped=reshaped[mask]; newX=newX[mask,:]; ldmat=ldmat[mask,:][:,mask] # drop SNPs with missing LD
         
+        thingsToMonitor['snpsDroppedBCCHPCorrectionByLD']=mstart-newX.shape[0]
         ldc=abs(ldmat.copy()); ss=(ldc>ldUpperLimit).sum(axis=0).sum(axis=0)
         if (ldmat.shape[0]<nMinIVs) or (ss==ldmat.shape[0]**2): # if not enough SNPs or all are in near-perfect LD with each other
             continue
@@ -1835,7 +1899,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         sparsePrecisionSqrt=v@numpy.diag(1/w**0.5)@v.T
         thingsToMonitor['alphaToMakeLDMatPosDef']=alpha
         ############################################################### end middle 1/3rd (correlations and imputation)
-
+        
         ############################################################### start final 1/3rd (MR and saving data) (avg ~2 seconds per gene group)
         # organizing data
         bx=numpy.array(newX); by=reshaped['phenoZ'].values; bx0=bx.copy(); by0=by.copy()
@@ -1861,7 +1925,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         ##########################################
         ########################################## (yes I am doing this for a second time - works well in both cases)
         # remove genes with norm(newX[:,j],2)^2<5m
-        toKeep=(numpy.diag(bx.T@bx)>(hessMinScale*bx.shape[0])) # can change factor if you want; default is hessMinScale=5
+        toKeep=(numpy.diag(bx.T@bx)>(hessMinScale*bx.shape[0]/2)) # can change factor if you want; default is hessMinScale=5
         if sum(toKeep)==0:
             continue
         
@@ -1917,7 +1981,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         thingsToMonitor['MRJonesAlpha']=opAlphaVal
         ## first defining hyperparameter lambda1, lambda2/tau grids
         # multiple lambda vectors
-        lamvec=numpy.linspace(0.01,2,40)
+        lamvec=numpy.linspace(0.01,1,40)
         t1=numpy.linspace(0.01,1/2,10)
         t2=numpy.linspace(1,3,10)
         t3=numpy.linspace(5,10,10)
@@ -1928,30 +1992,39 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         out=MRJones(by0,bx0_,ld0og,UU_,UV_,lamvec=lamvec,tauvec=tauvec,rho_theta=3/2)
         # out=MRJones(by,bx,ld0,UU,UV,lamvec=lamvec,tauvec=tauvec)
         deltas=out['gamma']
-        finalEsts=out['theta']; v=(by.squeeze()-bx0_@finalEsts.squeeze()); r2mr=1-v.T@v/(by.squeeze().T@by.squeeze())
-        estsVars=out['covg']
-        if finalEsts[0]!=0:
-            finalEsts=finalEsts[1:]
-            estsVars=estsVars[1:,:][:,1:]
+        finalEsts=out['theta']; 
+        # variance explained
+        if all(finalEsts==0):
+            r2mr=0
         else:
-            finalEsts=finalEsts[1:]
+            em=numpy.column_stack((by0,bx0_@finalEsts)); 
+            if numpy.all(em[:,0]==em[0,0]) | numpy.all(em[:,1]==em[1,1]):
+                r2mr=0
+            else:
+                r2mr=numpy.corrcoef(em,rowvar=False)[0,1]**2
+        estsVars=out['covg']; estsVars=estsVars.reshape((estsVars.shape[0],estsVars.shape[0]))
+        # The MRJones() function already drops the intercept-relevant term from the variance-covariance matrix
+        finalEsts=finalEsts[1:]
+        estDf=pandas.DataFrame.from_dict({'gg': numpy.array(cn), 'Est': finalEsts})
         thingsToMonitor['nNonzeroMRJonesDeltas']=sum(deltas!=0)
         # if all(deltas!=0):
         #     continue
         # intercept terms not included in new MRJones function
-        isNotZero=(finalEsts!=0) # finding which genes we need a variance estimate for (ie non-shrunken-to-0 ones)
-        SEs=(numpy.diag(estsVars)**0.5)
-        estDf=pandas.DataFrame.from_dict({'gg': numpy.array(cn), 'Est': finalEsts})
-        # if all estimates shrunken to 0
-        if len(SEs)==0:
-            seDf=estDf.copy(); seDf=seDf.rename(columns={'Est': 'SE'}); seDf['SE']=math.inf
-        elif all(finalEsts==0): # MRJones will return all SEs as 0s for all genes, evenif coefficients are 0
-            seDf=pandas.DataFrame.from_dict({'gg': numpy.array(cn), 'SE': SEs})
-        else:
-            seDf=pandas.DataFrame.from_dict({'gg': numpy.array(cn)[isNotZero], 'SE': SEs})
+        # isNotZero=(finalEsts!=0) # finding which genes we need a variance estimate for (ie non-shrunken-to-0 ones)
+        # don't even consider MR-Jones SEs - we rely on post selection later anyway
+        paraDf=estDf.copy()
+        paraDf['SE']=math.inf
+        # SEs=(numpy.diag(estsVars)**0.5).squeeze()
+        # # if all estimates shrunken to 0
+        # if len(SEs)==0:
+        #     seDf=estDf.copy(); seDf=seDf.rename(columns={'Est': 'SE'}); seDf['SE']=math.inf
+        # elif all(finalEsts==0): # MRJones will return all SEs as 0s for all genes, evenif coefficients are 0
+        #     seDf=pandas.DataFrame.from_dict({'gg': numpy.array(cn), 'SE': numpy.ones((len(cn),))*float('nan')})
+        # else:
+        #     seDf=pandas.DataFrame.from_dict({'gg': numpy.array(cn)[isNotZero], 'SE': SEs})
         
-        paraDf=pandas.merge(estDf,seDf,how='outer',left_on='gg', right_on='gg')
-        paraDf['SE']=paraDf['SE'].fillna(math.inf)
+        # paraDf=pandas.merge(estDf,seDf,how='outer',left_on='gg', right_on='gg')
+        # paraDf['SE']=paraDf['SE'].fillna(math.inf)
         # add lead SNPs for each gene to use in later plotting
         leadGeneSNPDf['Gene']=leadGeneSNPDf['Gene']+'_Z' # for merging
         paraDf=pandas.merge(paraDf,leadGeneSNPDf,left_on='gg',right_on='Gene') # merge
@@ -1987,32 +2060,25 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         paraDf=pandas.merge(paraDf,ridgeDf,left_on='Gene',right_on='Gene')
         # MRBEE with Huber loss
         gam=sum((by.squeeze()-numpy.median(by.squeeze()))**2)/by.shape[0]/2
-        huberE,huberV,huberW=MRBEEHuber(bx,by,ld0,UU,UV,gamma=gam,initial="bee",eps=0.0001*p,max_iter=20,boot=False) # keep gamma small (as gamma-> huber->quantile)
+        huberE,huberV,huberW=MRBEEHuber(bx,by,ld0,UU,UV,gamma=gam,initial="bee",eps=0.0001*p,max_iter=20,boot=False) # keep gamma small (as gamma->inf, huber->quantile)
         nim=numpy.ones((p+1,),dtype='bool'); nim[0]=False # non-intercept mask
         huberdf=pandas.DataFrame({'Gene': cn_,'MRBEEHuberEst': huberE.squeeze()[nim], 'MRBEEHuberSE': ((numpy.diag(huberV)**0.5).squeeze())[nim]})
         paraDf=pandas.merge(paraDf,huberdf,left_on='Gene',right_on='Gene')
-        # only using MRJones to perform variable selection (MRBEE for estimation and inference)
+        ### MRBEE Post-Selection
         mask=finalEsts!=0 # True where gene should be included, False where not
         if sum(mask)==0:
             toa=numpy.array([0]*len(mask))*float('nan') # vector of NaN's
             toAdd=pandas.DataFrame({'Gene': cn_, 'MRBEEPosSelEst': toa,'MRBEEPosSelSE': toa})
             paraDf=pandas.merge(paraDf,toAdd,left_on='Gene',right_on='Gene')
         else:
-            keep=numpy.ones((bx.shape[0],),dtype='bool') # if not subsetting IV set further
-        # Zr=numpy.corrcoef(sparsePrecision@bx[:,mask],rowvar=False)
-        # chistats=numpy.diag(bx[:,mask]@numpy.linalg.inv(Zr)@bx[:,mask].T)
-        # df_=sum(mask)
-        # keep=[1-stats.chi2.cdf(chistats[x],df_)<(5e-5) for x in range(0,chistats.shape[0])]
-        Rinvkeep=ld0[keep,:][:,keep]
-        Rinvkeep=regularizeLD(Rinvkeep,int(Rinvkeep.shape[0]/4),Rinvkeep.shape[0]+1,0.1)[0]            
-        Rinvkeep=numpy.linalg.inv(Rinvkeep)
-        # re-perform evaluation of IVs
-        # bootsel=True if sum(keep)<50 else False
-        bootsel=False # causes problems
-        p1,p2,p3,p4,p5=imrbee(bx[keep,:][:,mask],by[keep],UU[mask,:][:,mask],UV[mask],VV,Rinvkeep,ld0[keep,:][:,keep],0.05/sum(keep),boot=bootsel)
-        p1=p1[1:]; p2=p2[1:,:][:,1:] # remove intercept-relevant terms 
-        toAdd=pandas.DataFrame({'Gene': numpy.array(cn_)[mask].tolist(), 'MRBEEPosSelEst': p1.squeeze(), 'MRBEEPosSelSE': numpy.diag(p2)**0.5})
-        paraDf=pandas.merge(paraDf,toAdd,how="outer",left_on='Gene',right_on='Gene')
+            bxkeep=bx[:,mask]; UUkeep=UU[mask,:][:,mask]; UVkeep=UV[mask]
+            p1,p2,p3,p4,p5=imrbee(bxkeep,by,UUkeep,UVkeep,VV,sparsePrecision,ld0,0.05/bxkeep.shape[0]**0.5,boot=False)
+            p1=p1[1:]; p2=p2[1:,:][:,1:] # remove intercept-relevant terms 
+            toAdd=pandas.DataFrame({'Gene': numpy.array(cn_)[mask].tolist(), 'MRBEEPosSelEst': p1.squeeze(), 'MRBEEPosSelSE': numpy.diag(p2)**0.5})
+            paraDf=pandas.merge(paraDf,toAdd,how="outer",left_on='Gene',right_on='Gene')
+        # single SNP
+        singlesnpdf=singleSNP(bx,by,cn_)
+        paraDf=pandas.merge(paraDf,singlesnpdf,how='outer',left_on='Gene',right_on='Gene')
         # estimate gene expression heritabilities and numbers of SNPs with nonzero associations with gene expression (from theory)
         # eps=[sum(abs(bx[:,__])>2) for __ in range(0,bx.shape[1])] # estimates of beta mixture proportions (see next line) (proportions of nonzero true associations with gene exp)
         # eps=numpy.array(eps)/bx.shape[0]
@@ -2052,38 +2118,42 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         toAdd=pandas.DataFrame({'Gene': cn_, 'nClumps': nclumps, 'h2CisEstNaive': cisEstNaive})
         paraDf=pandas.merge(paraDf,toAdd,left_on='Gene',right_on='Gene')
         paraDf['MRJonesR2']=r2mr
-        # pretty sure h2 cannot be reliably estimated from the data because bx=bhat*nk/sigk where I do not know sigk and there is evidence that it is not 1.
-        
+        # pretty sure h2 cannot be reliably estimated from the data because bx=bhat*nk/sigk where I do not know sigk and there is evidence that it is not 1.        
         # d1['data']=reshaped # probably don't want to save the data ... will take up a lot of memory
         d1={}
         d1['data']={'Gene': cn_, 'GeneBP': gl, 'IVs': reshaped['geneSNP'].values.tolist()}
-        if saveData:
+        if saveData: # currently not used after this point. data gets outputted by MVMRWorkhorse() but is not saved after that
             d1['bX']=bx; d1['by']=by; d1['UU']=UU; d1['UV']=UV; d1['regLD']=ld0
         paraDf.index=paraDf['Gene']; paraDf=paraDf.reindex(cn_)
         d1['meta']=paraDf # put whole data frame
-        outerDict[ggKeys[ogene]]=d1
+        # outerDict[ggKeys[ogene]]=d1
+        outerDict['group'+str(ogene)]=d1
         thingsMonitored[ggKeys[ogene]]=thingsToMonitor # the key is the key for the group in geneGroups
         ### MN networks
-        edgeDict={}
-        if r2mr>networkR2Thres: # only make them for loci with substantial variance explained
-            XX=numpy.column_stack((by,bx))
-            XXSE=numpy.ones(XX.shape)
-            Rnoise=numpy.eye(bx.shape[1]+1); Rnoise[1:,1:]=UU; Rnoise=posDefifyCorrMat(Rnoise)[0]
-            net=entropy_mcp_spearman_sampling(XX,XXSE,Rnoise/10) # make Rnoise small
-            c1=sum(sum(numpy.isnan(net['Theta'])))>0
-            c2=sum(sum(numpy.isnan(net['Theta_Alt'])))>0
-            if (c1==True) & (c2==False):
-                edges=(net['Theta_Alt']!=0).astype(int)
-            elif (c1==False) & (c2==True):
-                edges=(net['Theta']!=0).astype(int)
-            elif (c1==False) & (c2==False):
-                edges=(net['Theta']!=0).astype(int)
-            else: # could not conpute network
-                edges=numpy.zeros(XX.shape)
-            numpy.fill_diagonal(edges,0)
-        else:
+        try:
+        # back-tabbed the if: else: below twice
+          if (r2mr>networkR2Thres) & (bx.shape[0]>25) & (bx.shape[1]>1):
+              XX=numpy.column_stack((by,bx))
+              XXSE=numpy.ones(XX.shape)
+              Rnoise=numpy.eye(bx.shape[1]+1); Rnoise[1:,1:]=UU; Rnoise=posDefifyCorrMat(Rnoise)[0]
+              lv1=lamvec=numpy.linspace(1,5,10)/100; lv2=lamvec=numpy.linspace(7,12,10)/100; lv3=lamvec=numpy.linspace(15,20,10)/100; lv=numpy.concatenate((lv1,lv2,lv3))
+              net=entropy_mcp_spearman_sampling(XX,XXSE,Rnoise/5,lamvec=lv) # make Rnoise small
+              c1=sum(sum(numpy.isnan(net['Theta'])))>0
+              c2=sum(sum(numpy.isnan(net['Theta_Alt'])))>0
+              if (c1==True) & (c2==False):
+                  edges=(net['Theta_Alt']!=0).astype(int)
+              elif (c1==False) & (c2==True):
+                  edges=(net['Theta']!=0).astype(int)
+              elif (c1==False) & (c2==False):
+                  edges=(net['Theta']!=0).astype(int)
+              else: # could not conpute network
+                  edges=numpy.zeros(XX.shape)
+              numpy.fill_diagonal(edges,0)
+          else:
+              edges=numpy.zeros((bx.shape[1]+1,bx.shape[1]+1))
+        except:
             edges=numpy.zeros((bx.shape[1]+1,bx.shape[1]+1))
-        edgeDict['group'+str(ogene)]=edges
+        edgeDict['group'+str(ogene)]=edges 
         ############################################################### final 1/3rd (MR and saving data)
     return thingsMonitored,outerDict,edgeDict
 
@@ -2175,7 +2245,6 @@ def UVMRworkhorse(merged,writableDir,ldRefDir,LDWindowMb=1,LDMaxInWindow=0.5,eQT
         ivwvar=s2*bxx
         # huber loss
         huberE,huberV,huberW=MRBEEHuber(bx,by,ld0,UU,UV,gamma=0.5,initial="bee",eps=0.001,max_iter=15,boot=False) # keep gamma small (as gamma-> huber->quantile)
-        # no clear way to calulate F-stats from Z-stats
         # end
         paraDict={'Gene': genes[ogene], 'GeneBP': int(mcut['geneBP'].unique()),
                   'MRBEEEst': float(est0[1]), 'MRBEESE': float(V0[1,1]**0.5), 
@@ -2239,7 +2308,7 @@ def MRBEEHuber(bx,by,R,UU,UV,gamma=0.5,initial="ivw",eps=0.001,max_iter=15,boot=
 
 # calculating inflation using areas where I know there is no outcome signal. need to use the actual data for this
 # the data I will use for this is in the `merged` object and I'll want to do this before running the analyses
-def calcInflationFactor(merged,ldRefDir,writableDir,mbWindow=5,ldUpperLimit=0.5,outcomeP=0.05,nGenesToTry=100,geneDistMb=1,minM=50):
+def calcInflationFactor(merged,ldRefDir,writableDir,mbWindow=5,ldUpperLimit=0.5,outcomeP=0.01,nGenesToTry=50,geneDistMb=1,minM=25):
     # 1) find loci in which there is no outcome signal
     # 2) select a gene with no eQTLs
     # 3) calculate LD for SNPs available for gene
@@ -2254,13 +2323,15 @@ def calcInflationFactor(merged,ldRefDir,writableDir,mbWindow=5,ldUpperLimit=0.5,
     clumpBPs=merged_[merged_['isOutcomeClump']==True]['snpBP'].unique()
     mask=numpy.ones((merged_.shape[0]),dtype='bool')
     for _ in range(0,len(clumpBPs)):
-        m_=merged[abs(merged['snpBP']-clumpBPs[_])<(mbWindow*1000000)] # the 5Mb region around clumpBPs
+        m_=merged[abs(merged['snpBP']-clumpBPs[_])<(mbWindow*1000000)] # the 1Mb region around clumpBPs
         mask[m_.index]=False
     merged_=merged_.sort_values(by='snpBP',ascending=True)
     merged_=merged_[mask]
     # 2)
     # first finding genes that are at least geneDistMb Mb away from each other
     genedf=merged_[['Gene','geneBP']].drop_duplicates().sort_values(by='geneBP',ascending=True)
+    if genedf.shape[0]==0:
+        return 1,0,1,[],0,float('nan')
     mask=numpy.zeros((genedf.shape[0],),dtype='bool'); mask[0]=True
     for _ in range(1,len(mask)): # starting with second gene
         tind=numpy.where(mask==True)[0][-1]
@@ -2275,7 +2346,7 @@ def calcInflationFactor(merged,ldRefDir,writableDir,mbWindow=5,ldUpperLimit=0.5,
         dat=merged_[merged_['Gene']==ggs[_]]
         dat=dat[abs(dat['phenoZ'])<norm.ppf(1-outcomeP,0,1)]
         # dat=dat[abs(dat['geneZ'])<norm.ppf(1-outcomeP,0,1)] # also make sure no eQTLs to rule out horizontal pleiotropy causing inflation
-        if dat.shape[0]<(2*minM):
+        if dat.shape[0]<(minM):
             continue
         # 3) only use every kth SNP to speed things up and ensure I don't need to do as much removing bc of high LD later.
         # I want approximately 100 SNPs before LD pruning so the k in kth is dynamically chosen based on how much data is originally available
@@ -2325,47 +2396,8 @@ def calcInflationFactor(merged,ldRefDir,writableDir,mbWindow=5,ldUpperLimit=0.5,
         stat=((est/se)**2)[1] # only care about causal estimate, not intercept
         cstats.append(stat)
     # 7)
-    infl=numpy.median(cstats)/stats.chi2.ppf(0.5,1)
+    infl=numpy.median(cstats)/stats.chi2.ppf(0.5,1) if len(cstats)>10 else 1
     # finding BP positions of genes used in inflation calculation
     bps=genedf[genedf['Gene'].isin(usedGenes)]['geneBP'].values
     return infl,ccs,ccps,usedGenes,ms,bps
 
-# def network(bx,suu,)    
-
-
-
-# rhomat=function(wi,lam,a=3.7){
-#   S=pmax(lam*((abs(wi)<=lam)
-#               +pmax(a*lam-abs(wi),0)*abs((wi)>lam)/(a-1)/lam),1e-4)
-#   return(S)
-# }
-
-
-# genetic.network=function(X,Rxx,LD,lamvec=c(5:20)/100,cor=T,centering=T){
-# if(centering==T) X=t(t(X)-colMeans(X))
-# m=nrow(X)
-# p=ncol(X)
-# S=t(X)%*%solve(Rxx)%*%X-Rxx
-
-# if(cor==T){
-# R=cov2cor(S)
-# }else{
-# R=S/(nrow(X)-1)
-# } 
-
-# Thetalist=list()
-# BICvec=c(1:length(lamvec))
-# for(i in 1:length(lamvec)){
-# fit0=glasso(R,lam[i],penalize.diagonal=F)
-# wi=fit0$wi
-# rhomatrix=rhomat(wi,lam[i],a=3.7)
-# diag(rhomatrix)=0
-# fit1=glasso(R,rhomatrix)
-# wi=fit1$wi
-# Thetalist[[i]]=wi
-# BICvec[[i]]=sum(diag(wi%*%R))-sum(log(eigen(wi+1/sqrt(m)*diag(p))$values))+log(m)/m*(p+sum(wi!=0))/2
-# }
-
-# A=list(Thetalist=Thetalist,BICvec=BICvec)
-# return(A)
-# }
