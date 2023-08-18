@@ -68,10 +68,15 @@ print('HORNET started '+time.ctime())
 args=parser.parse_args()
 
 ### first checking if all of the files/direcetories they gave actually exist
-fileChecker(args.eQTLGWAS, 'eQTL GWAS directory')
-fileChecker(args.phenoGWAS, 'phenotype GWAS filepath')
-fileChecker(args.LDRef+'.bed', 'LD reference panel filepath (w/o extension)')
-fileChecker(args.writableDir, 'temporing working directory')
+print(os.getcwd())
+print(os.path.dirname(args.eQTLGWAS))
+print(os.path.dirname(args.phenoGWAS))
+print(os.path.dirname(args.LDRef+'.bed'))
+print(os.path.dirname(args.writableDir))
+fileChecker(os.path.dirname(args.eQTLGWAS), 'eQTL GWAS directory')
+fileChecker(os.path.dirname(args.phenoGWAS), 'phenotype GWAS filepath')
+fileChecker(os.path.dirname(args.LDRef+'.bed'), 'LD reference panel filepath (w/o extension)')
+fileChecker(os.path.dirname(args.writableDir), 'temporing working directory')
 od=(args.out.split('/'))[:-1]
 fileChecker('/'.join(od), 'output/results directory')
 # if no files in eQTL GWAS directory, there's a problem
@@ -236,6 +241,8 @@ hasSaved=False
 if (runningres.shape[1]>1) & (graphNetworks):
     vals=numpy.sort(runningres['RsquaredMRJones'].unique())[::-1]
     for _ in range(0,len(vals)):
+        if vals[_]<args.networkR2Thres:
+            continue
         dcut=runningres[runningres['RsquaredMRJones']==vals[_]]
         genes=dcut['Gene'].values.tolist(); genes=[genes[_].split(',')[0] for _ in range(0,len(genes))]
         if dcut.shape[0]<1:
@@ -246,11 +253,6 @@ if (runningres.shape[1]>1) & (graphNetworks):
             continue
         G=addEdges(edges)
         fl=flatten_list([args.networkDiseaseLabel,genes])
-        if len(fl)!=edges.shape[0]:
-            print(dcut.head())
-            print(dcut.shape)
-            print(genes)
-            print('length of names: '+str(len(fl))+', dimension of edge matrix: '+str(edges.shape[0]))
         G=nx.relabel_nodes(G,mapping=mapNodeNames(edges,fl)) # add new labels
         # color_map=colorCoreGenes(edges) # add colors for core and peripheral genes
         fig=matplotlib.pyplot.figure(figsize=(12,8))
