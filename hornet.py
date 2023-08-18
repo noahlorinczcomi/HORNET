@@ -68,8 +68,6 @@ print('HORNET started '+time.ctime())
 args=parser.parse_args()
 
 ### first checking if all of the files/direcetories they gave actually exist
-print(os.path.abspath(args.eQTLGWAS))
-print('hi')
 fileChecker(os.path.abspath(args.eQTLGWAS), 'eQTL GWAS directory')
 fileChecker(os.path.abspath(args.phenoGWAS), 'phenotype GWAS filepath')
 fileChecker(os.path.abspath(args.LDRef+'.bed'), 'LD reference panel filepath (w/o extension)')
@@ -81,7 +79,7 @@ if (os.listdir(args.eQTLGWAS))==0:
     raise ValueError('It looks like there are no files in the eQTL GWAS directory ({})'.format(args.eQTLGWAS))
 # output directory for graphs
 graphoutdir=args.networkGraphsOut+'/' if args.networkGraphsOut!='plots' else os.getcwd()+'/plots/'
-if os.path.isdir(graphoutdir)==False:
+if os.path.isdir(os.path.abspath(graphoutdir))==False:
     raise ValueError('\n It looks like the directory you want to save network graph plots to does not exist({})'.format(graphoutdir))
 
 ## 
@@ -89,11 +87,11 @@ candidateGenes=args.candidateGenes.split(',') if len(args.candidateGenes)>0 else
 snplabs=args.snpLabels.split(',')
 zlabs=args.zLabels.split(',')
 ealabs=args.effectAlleles.split(',')
-startwd=os.getcwd() # starting working directory - will be the one containing the HORNET software
+startwd=os.getcwd() # starting working directory - will be the absolute path of the HORNET software
 impute=(args.imputeMissingEQTLs.lower()=='true') | (args.imputeMissingEQTLs.lower()=='yes')
 
 ### exposure parameters
-dirGene=args.eQTLGWAS 
+dirGene=os.path.abspath(args.eQTLGWAS)
 isRawGTEx=(args.isRawGTEx.lower()=='true') | (args.isRawGTEx.lower()=='yes')
 effectAlleleGene=ealabs[0]
 zGene=zlabs[0]
@@ -127,10 +125,11 @@ saveData=(args.saveRawData.lower()=='true') | (args.saveRawData.lower()=='yes')
 numIndexGenesToFormGroup=args.numIndexGenesToFormGroup
 
 ### phenotype parameters
-fpPheno=args.phenoGWAS
-writableDir=args.writableDir
-ldRefDir=args.LDRef
-mapwd=os.path.dirname(os.path.dirname(ldRefDir))+'/maps/1kgPhase3maps'
+fpPheno=os.path.abspath(args.phenoGWAS)
+writableDir=os.path.abspath(args.writableDir)
+ldRefDir=os.path.abspath(args.LDRef)
+# mapwd is fixed - users must use one of the maps I created
+mapwd=os.path.abspath('data/maps/1kgPhase3maps')
 rsidPheno=snplabs[1]
 effectAllelePheno=ealabs[1]
 zPheno=zlabs[1]
@@ -214,6 +213,11 @@ fp1=args.out+'_results.txt'
 fp2=args.out+'_diagnostics.txt'
 runningres.to_csv(fp1,sep='\t')
 runningdiagnostics.to_csv(fp2,sep='\t')
+# also save a copy of runningres to HORNET/res.csv so it can be read by plotres.r
+copyfpout=os.path.abspath('HORNET')
+runningres.to_csv(copyfpout+'/res.csv')
+# save executing commands of plotres.r for later - don't want to cause an early error bc users don't have R installed
+
 # delete iteratively saven files if user chose to iteratively save results
 delcmd='del' if platform.system()=='Windows' else 'rm'
 if (args.iterativelySave.lower()=='true') | (args.iterativelySave.lower()=='yes'):
@@ -267,6 +271,15 @@ if (runningres.shape[1]>1) & (graphNetworks):
 print(' ')
 if graphNetworks & hasSaved:
     print('Network graphs are saved in the '+graphoutdir+' folder')
+
+# finally, if user has R installed, execute commands in HORNET/plotres.r
+from subprocess import Popen, PIPE
+proc = Popen(["which", "R"],stdout=PIPE,stderr=PIPE)
+exit_code = proc.wait()
+if exit_code == 0:
+    cmd=['Rscript','plotres.r']
+    subprocess.call(cmd,stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+
 print(' ')
 print('HORNET ended '+time.ctime())
 
