@@ -82,6 +82,8 @@ if (os.listdir(args.eQTLGWAS))==0:
 #if os.path.isdir(graphoutdir)==False:
 #    raise ValueError('\n It looks like the directory you want to save network graph plots to does not exist({})'.format(graphoutdir))
 
+print(os.getcwd())
+raise ValueError('\n hi, I stopped it early')
 print(os.path.dirname(args.eQTLGWAS))
 print(os.path.dirname(os.path.dirname(args.eQTLGWAS)))
 
