@@ -68,18 +68,12 @@ print('HORNET started '+time.ctime())
 args=parser.parse_args()
 
 ### first checking if all of the files/direcetories they gave actually exist
-print(os.getcwd())
-print(os.path.dirname(args.eQTLGWAS))
-print(args.eQTLGWAS)
-print(os.path.dirname(args.phenoGWAS))
-print(os.path.dirname(args.LDRef+'.bed'))
-print(os.path.dirname(args.writableDir))
-fileChecker(os.path.dirname(args.eQTLGWAS), 'eQTL GWAS directory')
-fileChecker(os.path.dirname(args.phenoGWAS), 'phenotype GWAS filepath')
-fileChecker(os.path.dirname(args.LDRef+'.bed'), 'LD reference panel filepath (w/o extension)')
-fileChecker(os.path.dirname(args.writableDir), 'temporing working directory')
-od=(args.out.split('/'))[:-1]
-fileChecker('/'.join(od), 'output/results directory')
+#fileChecker(os.path.dirname(args.eQTLGWAS), 'eQTL GWAS directory')
+#fileChecker(os.path.dirname(args.phenoGWAS), 'phenotype GWAS filepath')
+#fileChecker(os.path.dirname(args.LDRef+'.bed'), 'LD reference panel filepath (w/o extension)')
+#fileChecker(os.path.dirname(args.writableDir), 'temporing working directory')
+#od=(args.out.split('/'))[:-1]
+#fileChecker('/'.join(od), 'output/results directory')
 # if no files in eQTL GWAS directory, there's a problem
 if (os.listdir(args.eQTLGWAS))==0:
     raise ValueError('It looks like there are no files in the eQTL GWAS directory ({})'.format(args.eQTLGWAS))
