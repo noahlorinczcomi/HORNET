@@ -1841,10 +1841,10 @@ CMplot <- function(
                     if(file.output){
                         ht=ifelse(is.null(height), 6, height)
                         wh=ifelse(is.null(width), 14, width)
-                        if(file=="jpg") jpeg(paste("Rect_Manhtn.",ifelse(file.name=="",trait[i],file.name[i]),".jpg",sep=""), width=wh*dpi,height=ht*dpi,res=dpi,quality=100)
-                        if(file=="pdf") pdf(paste("Rect_Manhtn.",ifelse(file.name=="",trait[i],file.name[i]),".pdf",sep=""), width=wh,height=ht)
-                        if(file=="tiff")    tiff(paste("Rect_Manhtn.",ifelse(file.name=="",trait[i],file.name[i]),".tiff",sep=""), width=wh*dpi,height=ht*dpi,res=dpi)
-                        if(file=="png") png(paste("Rect_Manhtn.",ifelse(file.name=="",trait[i],file.name[i]),".png",sep=""), width=wh*dpi,height=ht*dpi,res=dpi,bg=NA)
+                        if(file=="jpg") jpeg(paste(ifelse(file.name=="",trait[i],file.name[i]),".jpg",sep=""), width=wh*dpi,height=ht*dpi,res=dpi,quality=100)
+                        if(file=="pdf") pdf(paste(ifelse(file.name=="",trait[i],file.name[i]),".pdf",sep=""), width=wh,height=ht)
+                        if(file=="tiff")    tiff(paste(ifelse(file.name=="",trait[i],file.name[i]),".tiff",sep=""), width=wh*dpi,height=ht*dpi,res=dpi)
+                        if(file=="png") png(paste(ifelse(file.name=="",trait[i],file.name[i]),".png",sep=""), width=wh*dpi,height=ht*dpi,res=dpi,bg=NA)
                         par(mar=mar,xaxs="i",yaxs="r")
                     }
                     if(!file.output){
