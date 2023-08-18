@@ -70,6 +70,7 @@ args=parser.parse_args()
 ### first checking if all of the files/direcetories they gave actually exist
 print(os.getcwd())
 print(os.path.dirname(args.eQTLGWAS))
+print(args.eQTLGWAS)
 print(os.path.dirname(args.phenoGWAS))
 print(os.path.dirname(args.LDRef+'.bed'))
 print(os.path.dirname(args.writableDir))
