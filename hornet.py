@@ -69,6 +69,7 @@ args=parser.parse_args()
 
 ### first checking if all of the files/direcetories they gave actually exist
 print(os.path.abspath(args.eQTLGWAS))
+print('hi')
 fileChecker(os.path.abspath(args.eQTLGWAS), 'eQTL GWAS directory')
 fileChecker(os.path.abspath(args.phenoGWAS), 'phenotype GWAS filepath')
 fileChecker(os.path.abspath(args.LDRef+'.bed'), 'LD reference panel filepath (w/o extension)')
