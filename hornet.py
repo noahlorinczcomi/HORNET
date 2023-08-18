@@ -68,25 +68,19 @@ print('HORNET started '+time.ctime())
 args=parser.parse_args()
 
 ### first checking if all of the files/direcetories they gave actually exist
-#fileChecker(os.path.dirname(args.eQTLGWAS), 'eQTL GWAS directory')
-#fileChecker(os.path.dirname(args.phenoGWAS), 'phenotype GWAS filepath')
-#fileChecker(os.path.dirname(args.LDRef+'.bed'), 'LD reference panel filepath (w/o extension)')
-#fileChecker(os.path.dirname(args.writableDir), 'temporing working directory')
-#od=(args.out.split('/'))[:-1]
-#fileChecker('/'.join(od), 'output/results directory')
+fileChecker(os.path.dirname(args.eQTLGWAS), 'eQTL GWAS directory')
+fileChecker(os.path.dirname(args.phenoGWAS), 'phenotype GWAS filepath')
+fileChecker(os.path.dirname(args.LDRef+'.bed'), 'LD reference panel filepath (w/o extension)')
+fileChecker(os.path.dirname(args.writableDir), 'temporing working directory')
+od=(args.out.split('/'))[:-1]
+fileChecker('/'.join(od), 'output/results directory')
 # if no files in eQTL GWAS directory, there's a problem
 if (os.listdir(args.eQTLGWAS))==0:
     raise ValueError('It looks like there are no files in the eQTL GWAS directory ({})'.format(args.eQTLGWAS))
 # output directory for graphs
-#graphoutdir=args.networkGraphsOut+'/' if args.networkGraphsOut!='plots' else os.getcwd()+'/plots/'
-#if os.path.isdir(graphoutdir)==False:
-#    raise ValueError('\n It looks like the directory you want to save network graph plots to does not exist({})'.format(graphoutdir))
-
-print(os.getcwd())
-raise ValueError('\n hi, I stopped it early')
-print(os.path.dirname(args.eQTLGWAS))
-print(os.path.dirname(os.path.dirname(args.eQTLGWAS)))
-
+graphoutdir=args.networkGraphsOut+'/' if args.networkGraphsOut!='plots' else os.getcwd()+'/plots/'
+if os.path.isdir(graphoutdir)==False:
+    raise ValueError('\n It looks like the directory you want to save network graph plots to does not exist({})'.format(graphoutdir))
 
 ## 
 candidateGenes=args.candidateGenes.split(',') if len(args.candidateGenes)>0 else []
