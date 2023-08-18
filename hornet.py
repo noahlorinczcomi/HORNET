@@ -74,7 +74,7 @@ fileChecker(os.path.abspath(args.phenoGWAS), 'phenotype GWAS filepath')
 fileChecker(os.path.abspath(args.LDRef+'.bed'), 'LD reference panel filepath (w/o extension)')
 fileChecker(os.path.abspath(args.writableDir), 'temporing working directory')
 od=(args.out.split('/'))[:-1]
-fileChecker(os.path.abspath()'/'.join(od)), 'output/results directory')
+fileChecker(os.path.abspath()+'/'.join(od)), 'output/results directory')
 # if no files in eQTL GWAS directory, there's a problem
 if (os.listdir(args.eQTLGWAS))==0:
     raise ValueError('It looks like there are no files in the eQTL GWAS directory ({})'.format(args.eQTLGWAS))
