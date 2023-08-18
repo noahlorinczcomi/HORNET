@@ -78,9 +78,9 @@ args=parser.parse_args()
 if (os.listdir(args.eQTLGWAS))==0:
     raise ValueError('It looks like there are no files in the eQTL GWAS directory ({})'.format(args.eQTLGWAS))
 # output directory for graphs
-graphoutdir=args.networkGraphsOut+'/' if args.networkGraphsOut!='plots' else os.getcwd()+'/plots/'
-if os.path.isdir(graphoutdir)==False:
-    raise ValueError('\n It looks like the directory you want to save network graph plots to does not exist({})'.format(graphoutdir))
+#graphoutdir=args.networkGraphsOut+'/' if args.networkGraphsOut!='plots' else os.getcwd()+'/plots/'
+#if os.path.isdir(graphoutdir)==False:
+#    raise ValueError('\n It looks like the directory you want to save network graph plots to does not exist({})'.format(graphoutdir))
 
 ## 
 candidateGenes=args.candidateGenes.split(',') if len(args.candidateGenes)>0 else []
