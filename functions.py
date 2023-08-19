@@ -1350,8 +1350,10 @@ def callDelete():
 
 def callPlink():
     sys=platform.system()
-    if (sys=='Linux') | (sys=='Darwin'):
+    if sys=='Linux':
         call_='./plinkdir/linux/plink'
+    elif sys=='Darwin':
+        call_='./plinkdir/mac/plink'
     elif sys=='Windows':
         call_='plinkdir/windows/plink.exe'
     return call_
