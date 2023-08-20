@@ -132,7 +132,7 @@ Assume we ran the above command for GTEx data. We gave the `--out` flag the valu
     * Summary information related to missingness and imputation, the initial size of the gene network, the size of the IV set after applying various QC, etc.
 3. `HORNET/plots/<lead gene ID>_graph.png`
     * Plots of gene regulatory networks that include the disease outcome, too
-    * Only networks for the top `--networksInTopKLoci` loci will be estimated and plotted
-    * HORNET will choose the top `--networksInTopKLoci` loci as those with the largest variance explained, provided variance explained values are greater than `--networkR2Thres`, which defaults to 0.05.
+    * Only networks for which the genetic variance in the disease that was explained by gene expression exceeded `--networkR2Thres` will be considered
+
  
 
