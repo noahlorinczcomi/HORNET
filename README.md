@@ -71,6 +71,9 @@ AD GWAS data are stored directly in the `testdata/` directory under the name `AD
 # Using HORNET on the command line
 HORNET partially exists as a command-line tool. This means that the user defines a single command and executes it in the terminal. The command that the user gives HORNET is slightly different if they are using raw summary data from GTEx vs some other source, such as eQTLGen. First, we demonstrate how to use HORNET with eQTL GWAS data that is **not** from GTEx.
 
+## Computational overview
+![hi](https://github.com/noahlorinczcomi/HORNET/blob/main/HORNET%20Computational%20Flowchart.svg)
+
 ## eQTL summary data NOT from GTEx
 If the eQTL GWAS summary data is not from GTEx, HORNET must be told the following information:
 * Filepath to the folder where the eQTL GWAS summary data are located (nothing else besides these data must be present in this folder)
