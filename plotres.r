@@ -83,7 +83,7 @@ mp=ggplot(vdf,aes(x=z,y=pratt,color=factor(shapevar))) +
   theme(legend.position='bottom',legend.text=element_text(size=11)) +
   labs(x='Z-statistic for causal estimate',y='Pratt index') +
   geom_point() +
-  geom_text(aes(label=genelabel),nudge_y=0.05,size=2,angle=45,color='black')
+  geom_text(aes(label=genelabel),data=vdf[vdf$shapevar==2,],nudge_y=0.05,size=2,angle=45,color='black')
 
 ggsave('volcano.png',mp,width=8,height=6)
 ############################################################################################################################################
