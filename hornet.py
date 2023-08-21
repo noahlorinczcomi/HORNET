@@ -141,11 +141,7 @@ outcomeClumpingR2=args.phenoLociR2
 print('Loading phenotype GWAS data')
 dataPheno=loadOutcomeGWASData(fpPheno,effectAllelePheno,zPheno,rsidPheno,ldRefDir)
 dataPheno=findOutcomeSignals(dataPheno,ldRefDir,writableDir,outcomeClumpingKBWindow,outcomeClumpingPthreshold,outcomeClumpingR2)
-op=os.path.abspath(args.out)
-if os.path.isdir(op):
-    dataPheno[dataPheno['isOutcomeClump']==True].to_csv(op+'/outcomeloci.csv')
-else:
-    dataPheno[dataPheno['isOutcomeClump']==True].to_csv('outcomeloci.csv')
+dataPheno[dataPheno['isOutcomeClump']==True].to_csv(os.path.abspath(od)+'/outcomeloci.csv')
 
 ### loading key/dictionary/lookup/reference data
 bim=pandas.read_csv(ldRefDir+'.bim',sep='\t',names=['chr','rsid','x','bp','a1','a2']) # for figuring out which chromosome is being used later
