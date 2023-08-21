@@ -216,7 +216,7 @@ fp2=args.out+'_diagnostics.txt'
 runningres.to_csv(fp1,sep='\t')
 runningdiagnostics.to_csv(fp2,sep='\t')
 # also save a copy of runningres to HORNET/res.csv so it can be read by plotres.r
-copyfpout=os.path.abspath('HORNET')
+copyfpout=os.path.abspath(os.getcwd())
 runningres.to_csv(copyfpout+'/res.csv')
 # save executing commands of plotres.r for later - don't want to cause an early error bc users don't have R installed
 
