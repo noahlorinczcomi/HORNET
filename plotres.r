@@ -3,6 +3,7 @@
 # ensuring necessary package exists (ggplot2) and confirm working directory
 ############################################################################################################################################
 if(!require('ggplot2')) install.packages('ggplot2')
+if(!require('ggrepel')) install.packages('ggrepel')
 source("modCMplot.r") # also using CMplot
 # data must be present like this /HORNET/res.csv  --- I am going to make a cpres.py file to ensure this
 ############################################################################################################################################
@@ -83,7 +84,8 @@ mp=ggplot(vdf,aes(x=z,y=pratt,color=factor(shapevar))) +
   theme(legend.position='bottom',legend.text=element_text(size=11)) +
   labs(x='Z-statistic for causal estimate',y='Pratt index') +
   geom_point() +
-  geom_text(aes(label=genelabel),data=vdf[vdf$shapevar==2,],nudge_y=0.05,size=2,angle=45,color='black')
+  geom_text_repel(aes(label=genelabel),data=vdf[vdf$shapevar==2,],nudge_y=0.05,size=2,angle=45,color='black',force=10) +
+  scale_y_continuous(breaks=seq(0,1,0.2),labels=seq(0,1,0.2),limits=c(-0.05,1))
 
 ggsave('volcano.png',mp,width=8,height=6)
 ############################################################################################################################################
