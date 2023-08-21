@@ -141,7 +141,6 @@ outcomeClumpingR2=args.phenoLociR2
 print('Loading phenotype GWAS data')
 dataPheno=loadOutcomeGWASData(fpPheno,effectAllelePheno,zPheno,rsidPheno,ldRefDir)
 dataPheno=findOutcomeSignals(dataPheno,ldRefDir,writableDir,outcomeClumpingKBWindow,outcomeClumpingPthreshold,outcomeClumpingR2)
-print(os.path.abspath('HORNET/results/outcomeloci.csv'))
 dataPheno[dataPheno['isOutcomeClump']==True].to_csv(os.path.abspath('HORNET/results/outcomeloci.csv'))
 
 ### loading key/dictionary/lookup/reference data
