@@ -144,7 +144,7 @@ outcomeClumpingR2=args.phenoLociR2
 print('Loading phenotype GWAS data')
 dataPheno=loadOutcomeGWASData(fpPheno,effectAllelePheno,zPheno,rsidPheno,ldRefDir)
 dataPheno=findOutcomeSignals(dataPheno,ldRefDir,writableDir,outcomeClumpingKBWindow,outcomeClumpingPthreshold,outcomeClumpingR2)
-dataPheno[dataPheno['isOutcomeClump']==True].to_csv(os.path.abspath('HORNET/results/outcomeloci.csv'))
+dataPheno[dataPheno['isOutcomeClump']==True].to_csv(os.path.abspath('results/outcomeloci.csv'))
 
 ### loading key/dictionary/lookup/reference data
 bim=pandas.read_csv(ldRefDir+'.bim',sep='\t',names=['chr','rsid','x','bp','a1','a2']) # for figuring out which chromosome is being used later
@@ -213,7 +213,7 @@ for _ in range(0, len(os.listdir(dirGene))):
         numpy.savetxt(fpout+'bybx.txt',numpy.column_stack((outerDict[ln]['by'],outerDict[ln]['bX'])))
         numpy.savetxt(fpout+'UU.txt',outerDict[ln]['UU'])
         numpy.savetxt(fpout+'LD.txt',outerDict[ln]['regLD'])
-    
+
     # LDLeadGeneSNPs(res,thischr,writableDir,ldRefDir) # write out results to be read in by an R program that will make figures etc.    
     t1=time.perf_counter()-t0
     print('  Chromosome '+str(chromosome)+' complete '+str(round(t1/60,1))+' minutes later')
