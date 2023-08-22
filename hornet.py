@@ -87,6 +87,9 @@ if os.path.isdir(os.path.abspath(graphoutdir))==False:
 
 ## 
 candidateGenes=args.candidateGenes.split(',') if len(args.candidateGenes)>0 else []
+# drop Ensembl version type if it is present (if it is not, this code will have no effect)
+if len(candidateGenes)>0:
+    candidateGenes=[candidateGenes[i].split('.')[0] for i in range(0,len(candidateGenes))]
 snplabs=args.snpLabels.split(',')
 zlabs=args.zLabels.split(',')
 ealabs=args.effectAlleles.split(',')
@@ -164,6 +167,8 @@ for _ in range(0, len(os.listdir(dirGene))):
         ch=loadExposureGWASData(dirGene+'/'+fpGene,effectAlleleGene,zGene,rsidGene,snpBPGene,geneLabelGene,geneBPLabelGene,nLabel=nLabel,isRawGzippedGTEx=isRawGTEx,mapwd=mapwd,nr=10)
         mm=pandas.merge(bim,ch,left_on='rsid',right_on='geneSNP') # find chromosome
         mchr=mm['chr'][0]
+        # drop version types if there are any
+        mm['Gene']=mm['Gene'].apply(lambda x: x.split('.')[0])
         mm=mm[mm['Gene'].isin(candidateGenes)]
         del ch
         if mm.shape[0]==0:
