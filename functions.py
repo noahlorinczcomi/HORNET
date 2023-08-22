@@ -1680,6 +1680,8 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
     outcomeclumpbps=merged[merged['isOutcomeClump']==True]['snpBP'].unique() # workhorse() receives CHR-specific data, so just need BP position
     ### first, if user just wants to test a set of candidate genes, make sure this CHR has some of them, else next
     if len(candidateGenes)>0:
+        candidateGenes=[candidateGenes[i].split('.')[0] for i in range(0,len(candidateGenes))]
+    if len(candidateGenes)>0:
         analysisOnlyInOutcomeLoci=False # perform analysis in candidateGenes loci
         tm=pandas.merge(merged,pandas.DataFrame({'Gene': candidateGenes}),left_on='Gene',right_on='Gene')
         if tm.shape[0]==0:
