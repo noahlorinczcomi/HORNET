@@ -50,7 +50,8 @@ parser.add_argument('--minMVMRIVs',action='store',type=int,default=30,help='(Opt
 parser.add_argument('--hessMinScale',action='store',type=float,default=2.5,help='(Optional) The signal-to-noise ratio for associations between SNPs and gene expression. Larger values will restrict the analysis to only genes with the strongest signals. Values equal to or less than 1/2 may lead to a Hessian matrix with diagonal elements that are not the correct sign, which is introduced by the MRBEE/MR-Jones correction for weak instruments. Note that the bias-correction term in the Hessian matrix of MR-Jones is automatically multiplied by the factor 1/2. The default is 2.5, corresponding to an effective signal-to-noise ratio of 5.')
 ### post-estimation stuff
 parser.add_argument('--adjustSEsForInflation',action='store',type=str,default='yes',help='(Optional) One of True or False. Should the standard errors of causal effect estimates be adjusted for inflation due to misspecified LD structure? The default is "yes".')
-parser.add_argument('--saveRawData',action='store',type=str,default='false',help='(Optional) One of True or False. Should the raw data used in multivariable MR be saved? This includes association estimates with each gene in a group, their standard errors, correspondingly the same for the outcome phenotype, and the estimated LD matrix.')
+parser.add_argument('--saveRawData',action='store',type=str,default='false',help='(Optional) One of "true" "yes", "false" or "no" . Should the raw data used in multivariable MR be saved? This includes association estimates with each gene in a group, their standard errors, correspondingly the same for the outcome phenotype, and the estimated LD matrix. NOTE!!! This really only works if you are exploring a single candidate gene/locus')
+parser.add_argument('--whereSaveRawData',action='store',type=str,default='',help='(Optional) If you gave --saveRawData "yes" or "true", this should be the directory/folder in which you want the raw data saved. The files will have the names "bybx.txt" (where -by- is in the first column),"UU.txt", and "LD.txt"')
 parser.add_argument('--out',action='store',type=str,default='results',help='(Optional) filename without extension of location in which results should be written, in tab-separated .txt format. The default is results. Note that a tab-separated file named diagnostics.txt will automatically be written. This file contains information about the performance of multivariable MR.')
 parser.add_argument('--iterativelySave',action='store',type=str,default='true',help='(Optional) Should results be saved iteratively as each chromosome is completed? This is helpful if you anticipate the analysis may take a relatively long time and you do not want to lose progress in case your access to the machine it is running on expires. The default is True.')
 ### creating networks
@@ -72,6 +73,8 @@ fileChecker(os.path.abspath(args.eQTLGWAS), 'eQTL GWAS directory')
 fileChecker(os.path.abspath(args.phenoGWAS), 'phenotype GWAS filepath')
 fileChecker(os.path.abspath(args.LDRef+'.bed'), 'LD reference panel filepath (w/o extension)')
 fileChecker(os.path.abspath(args.writableDir), 'temporing working directory')
+if args.whereSaveRawData!='':
+    fileChecker(os.path.abspath(args.whereSaveRawData),'saved raw data directory')
 od=(args.out.split('/'))[:-1]
 fileChecker('/'.join(od), 'output/results directory')
 # if no files in eQTL GWAS directory, there's a problem
@@ -203,6 +206,14 @@ for _ in range(0, len(os.listdir(dirGene))):
         res['nullInflation']=numpy.max((1,infl))
         res=adjustInflation(res,numpy.max((1,infl)))
     runningres=pandas.concat([runningres,res.copy()])
+    # if user wanted to save raw data, do that now inside of the chosen directory
+    if saveData:
+        fpout=args.whereSaveRawData+'/'
+        ln=list(outerDict)[0]
+        numpy.savetxt(fpout+'bybx.txt',numpy.column_stack((outerDict[ln]['by'],outerDict[ln]['bX'])))
+        numpy.savetxt(fpout+'UU.txt',outerDict[ln]['UU'])
+        numpy.savetxt(fpout+'LD.txt',outerDict[ln]['regLD'])
+    
     # LDLeadGeneSNPs(res,thischr,writableDir,ldRefDir) # write out results to be read in by an R program that will make figures etc.    
     t1=time.perf_counter()-t0
     print('  Chromosome '+str(chromosome)+' complete '+str(round(t1/60,1))+' minutes later')
