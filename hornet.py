@@ -90,6 +90,7 @@ candidateGenes=args.candidateGenes.split(',') if len(args.candidateGenes)>0 else
 # drop Ensembl version type if it is present (if it is not, this code will have no effect)
 if len(candidateGenes)>0:
     candidateGenes=[candidateGenes[i].split('.')[0] for i in range(0,len(candidateGenes))]
+
 snplabs=args.snpLabels.split(',')
 zlabs=args.zLabels.split(',')
 ealabs=args.effectAlleles.split(',')
@@ -167,15 +168,16 @@ for _ in range(0, len(os.listdir(dirGene))):
         ch=loadExposureGWASData(dirGene+'/'+fpGene,effectAlleleGene,zGene,rsidGene,snpBPGene,geneLabelGene,geneBPLabelGene,nLabel=nLabel,isRawGzippedGTEx=isRawGTEx,mapwd=mapwd,nr=10)
         mm=pandas.merge(bim,ch,left_on='rsid',right_on='geneSNP') # find chromosome
         mchr=mm['chr'][0]
-        # drop version types if there are any
-        mm['Gene']=mm['Gene'].apply(lambda x: x.split('.')[0])
-        mm=mm[mm['Gene'].isin(candidateGenes)]
-        del ch
-        if mm.shape[0]==0:
-            print('skipping chromsome '+str(mchr)+' because there are no candidate genes on this chromosome')
-            continue
     dataGene=loadExposureGWASData(dirGene+'/'+fpGene,effectAlleleGene,zGene,rsidGene,snpBPGene,geneLabelGene,geneBPLabelGene,nLabel=nLabel,isRawGzippedGTEx=isRawGTEx,mapwd=mapwd) # load genes
-    merged=mergeExposureAndOutcomeGWAS(dataGene,dataPheno) # merge with already loaded (outside of the loop) outcome GWAS data
+    # check exposure data for candidate gene(s)
+    ch=dataGene.copy()
+    ch['Gene']=ch['Gene'].apply(lambda x: x.split('.')[0])
+    ch=ch[ch['Gene'].isin(candidateGenes)]
+    if ch.shape[0]==0:
+        print('skipping chromsome '+str(mchr)+' because there are no candidate genes on this chromosome')
+        continue
+    # merge with outcome/phenotype data
+    merged=mergeExposureAndOutcomeGWAS(dataGene,dataPheno)
     mm=pandas.merge(bim,merged['geneSNP'].drop_duplicates(),left_on='rsid',right_on='geneSNP') # find chromosome
     chromosome=mm['chr'].values[0]
     del dataGene; # delete data we no longer need
