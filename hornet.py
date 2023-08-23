@@ -54,6 +54,7 @@ parser.add_argument('--saveRawData',action='store',type=str,default='false',help
 parser.add_argument('--whereSaveRawData',action='store',type=str,default='',help='(Optional) If you gave --saveRawData "yes" or "true", this should be the directory/folder in which you want the raw data saved. The files will have the names "bybx.txt" (where -by- is in the first column),"UU.txt", and "LD.txt"')
 parser.add_argument('--out',action='store',type=str,default='results',help='(Optional) filename without extension of location in which results should be written, in tab-separated .txt format. The default is results. Note that a tab-separated file named diagnostics.txt will automatically be written. This file contains information about the performance of multivariable MR.')
 parser.add_argument('--iterativelySave',action='store',type=str,default='true',help='(Optional) Should results be saved iteratively as each chromosome is completed? This is helpful if you anticipate the analysis may take a relatively long time and you do not want to lose progress in case your access to the machine it is running on expires. The default is True.')
+parser.add_argument('--cleanResults',action='store',type=str,default='yes',help='(Optional) Should the minimum interested results be saved? Put "no" or "false" if you want the complete results, including causal estiamtes from other MR methods. The default is "yes", to onnly output the most important results')
 ### creating networks
 parser.add_argument('--graphNetworks',action='store',type=str,default='yes',help='(Optional) Should graph images of causal networks be stored? If "yes", they will go into the "plots" subfolder. The default is "yes".')
 parser.add_argument('--graphNetworksFilePrefix',action='store',type=str,default='',help='(Optional) The default prefix for the filenames of graphed regulatory networks. Note that all network graph files will contain the lead gene in the filename automatically. What you put here will come before that. The default is "".')
@@ -195,7 +196,6 @@ for _ in range(0, len(os.listdir(dirGene))):
         geneGroups,ggKeys,lens,usedGenes=defineCandidateGeneGroups(merged,candidateGenes,MbWindow=2)
     else:
         geneGroups,ggKeys,lens,usedGenes=defGeneGroups(q0geneGroups,merged)
-    print(geneGroups)
     # [print(geneGroupFinder(geneGroups,candidateGenes[i],isGtex=True if isRawGTEx else False)) for i in range(0,len(candidateGenes))]
     thingsMonitored,outerDict,edgeD=MVMRworkhorse(merged,geneGroups,ggKeys,writableDir=writableDir,ldRefDir=ldRefDir,isGtex=isRawGTEx,
                                                   analysisOnlyInOutcomeLoci=analysisInPhenotypeLoci,outcomeLociMbWindow=outcomeLociMbWindow,
@@ -236,13 +236,24 @@ for _ in range(0, len(os.listdir(dirGene))):
         runningres.to_csv(args.out+'_tempresults.txt',sep='\t')
         runningdiagnostics.to_csv(args.out+'_diagnostics.txt',sep='\t')
 
-fp1=args.out+'_results.txt'
-fp2=args.out+'_diagnostics.txt'
-runningres.to_csv(fp1,sep='\t')
+fp1=os.path.abspath(args.out)+'_results.txt'
+fp2=os.path.abspath(args.out)+'_diagnostics.txt'
+# did the user want us to clean up the results?
+cleanres=(args.cleanResults.lower()=='yes') | (args.cleanResults.lower()=='true')
+if cleanres:
+    cr=runningres.copy()
+    cr['Pratt']=cr['MRBEEPostSelec_MVMR_Est']*cr['MRBEE_UVMR_Est']
+    cr['GeneSelected']=cr['MRJonesEst']!=0
+    cr=cr[['Gene','geneBP','Chromosome','GeneSelected','MRBEEPostSelec_MVMR_Est','MRBEEPostSelec_MVMR_SE','RsquaredMRJones','Pratt','CHRspecificGroupID']]
+    cr=cr.rename(columns={'MRBEEPostSelec_MVMR_Est':'Est','MRBEEPostSelec_MVMR_SE':'SE','RsquaredMRJones':'R2'})
+    cr.to_csv(fp1,sep='\t')
+else:
+    runningres.to_csv(fp1,sep='\t')
+
 runningdiagnostics.to_csv(fp2,sep='\t')
 # also save a copy of runningres to HORNET/res.csv so it can be read by plotres.r
 copyfpout=os.path.abspath(os.getcwd())
-runningres.to_csv(copyfpout+'/res.csv')
+runningres.to_csv(copyfpout+'/res.csv') # full (not super cleaned) data will still be written
 # save executing commands of plotres.r for later - don't want to cause an early error bc users don't have R installed
 
 # delete iteratively saven files if user chose to iteratively save results
