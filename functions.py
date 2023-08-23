@@ -1330,7 +1330,7 @@ def adjustInflation(res,infl):
     # want to adjust (Est/SE), (IVW_MVMR_Est/IVW_MVMR_SE), (IVW_UNIMR_Est/IVW_UNIMR_SE), (UniMRBEEEsts/UniMRBEESEs),
     # (MRBEEEsts/MRBEESEs), (MRBEERidgeEst/MRBEERidgeSE), (MRBEEPosSelEst/MRBEEPosSelSE)
     res2=res.copy()
-    res2['MRJonesSE']=res2['MRJonesSE']*(infl**0.5)
+    #res2['MRJonesSE']=res2['MRJonesSE']*(infl**0.5) # I removed MR-Jones's SE so don't need this anymore
     res2['IVW_MVMR_SE']=res2['IVW_MVMR_SE']*(infl**0.5)
     res2['IVW_UVMR_SE']=res2['IVW_UVMR_SE']*(infl**0.5)
     res2['MRBEE_UVMR_SE']=res2['MRBEE_UVMR_SE']*(infl**0.5)
@@ -1637,10 +1637,13 @@ def defGeneGroupsByOutcome(q0geneGroups, merged, KbWindow=100,closestK=2):
 def defineCandidateGeneGroups(merged,candidateGenes,MbWindow=2):
     geneGroups={}; lens=[]; usedGenes=[]
     for _ in range(0,len(candidateGenes)):
+        usedGenes=flatten_list(usedGenes)
+        if candidateGenes[_] in usedGenes: # I don't want any genes appearing in multiple groups
+            continue
         gbp=merged[merged['Gene']==candidateGenes[_]]['geneBP'].values[0]
         aroundgenes=merged[abs(merged['geneBP']-gbp)<(MbWindow*1e6)]['Gene'].unique()
         geneGroups[candidateGenes[_]]=aroundgenes
-        usedGenes.append(usedGenes)
+        usedGenes.append(aroundgenes.tolist())
         lens.append(len(aroundgenes))
     ggKeys=list(geneGroups)
     usedGenes=flatten_list(usedGenes)
@@ -1679,16 +1682,10 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
     # merged['Gene']=merged['Gene'].str.split(pat='.',n=0,expand=True).iloc[:,0] # dropping the '.<x>' suffixes from gene IDs (applies to GTEx, for example)
     outcomeclumpbps=merged[merged['isOutcomeClump']==True]['snpBP'].unique() # workhorse() receives CHR-specific data, so just need BP position
     ### first, if user just wants to test a set of candidate genes, make sure this CHR has some of them, else next
-    if len(candidateGenes)>0:
+    if len(candidateGenes)>0: # redundant, but just in case
         candidateGenes=[candidateGenes[i].split('.')[0] for i in range(0,len(candidateGenes))]
-    if len(candidateGenes)>0:
         analysisOnlyInOutcomeLoci=False # perform analysis in candidateGenes loci
-        tm=pandas.merge(merged,pandas.DataFrame({'Gene': candidateGenes}),left_on='Gene',right_on='Gene')
-        if tm.shape[0]==0:
-            del tm
-            print('Candidate Genes not found in data')
-            return {}, {}, {} # exit function and move to next CHR
-    ###
+    
     progs=list(numpy.linspace(0,len(geneGroups),10)); progs=[int(progs[x]) for x in range(0,len(progs))] # for progress printing
     thingsMonitored={}; outerDict={}; edgeDict={}
     for ogene in range(0, len(geneGroups)): # 0, len(geneGroups)

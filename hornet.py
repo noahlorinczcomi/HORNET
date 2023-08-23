@@ -160,27 +160,32 @@ runningres=pandas.DataFrame() # to be filled in
 runningdiagnostics=pandas.DataFrame() # to be filled in
 infls=list()
 edgeLists={}
+usedCandidateGenes=[]
 for _ in range(0, len(os.listdir(dirGene))):
     t0=time.perf_counter() # start timer
-    # os.chdir(dirGene)
+    # make sure I haven't already used all candidate genes
+    mask=[candidateGenes[i] in usedCandidateGenes for i in range(0,len(candidateGenes))]
+    if all(mask) & (len(candidateGenes)>0): # if all candidate genes have already been used
+        print('All available candidate genes have been tested')
+        break # don't need to consider additional chromosomes
     fpGene=os.listdir(dirGene)[_] # define filepath for exposure data
-    if len(candidateGenes)>0:
-        ch=loadExposureGWASData(dirGene+'/'+fpGene,effectAlleleGene,zGene,rsidGene,snpBPGene,geneLabelGene,geneBPLabelGene,nLabel=nLabel,isRawGzippedGTEx=isRawGTEx,mapwd=mapwd,nr=10)
-        mm=pandas.merge(bim,ch,left_on='rsid',right_on='geneSNP') # find chromosome
-        mchr=mm['chr'][0]
     dataGene=loadExposureGWASData(dirGene+'/'+fpGene,effectAlleleGene,zGene,rsidGene,snpBPGene,geneLabelGene,geneBPLabelGene,nLabel=nLabel,isRawGzippedGTEx=isRawGTEx,mapwd=mapwd) # load genes
-    # check exposure data for candidate gene(s)
-    ch=dataGene.copy()
-    ch['Gene']=ch['Gene'].apply(lambda x: x.split('.')[0])
-    ch=ch[ch['Gene'].isin(candidateGenes)]
-    if ch.shape[0]==0:
-        print('skipping chromsome '+str(mchr)+' because there are no candidate genes on this chromosome')
-        continue
-    # merge with outcome/phenotype data
-    merged=mergeExposureAndOutcomeGWAS(dataGene,dataPheno)
+    merged=mergeExposureAndOutcomeGWAS(dataGene,dataPheno) # merge with outcome/phenotype data
     mm=pandas.merge(bim,merged['geneSNP'].drop_duplicates(),left_on='rsid',right_on='geneSNP') # find chromosome
     chromosome=mm['chr'].values[0]
     del dataGene; # delete data we no longer need
+    # check merged data for candidate gene(s) if user provided any (not much speed advantage checking merged vs dataGene bc merging is very fast)
+    merged['Gene']=merged['Gene'].apply(lambda x: x.split('.')[0])
+    if len(candidateGenes)>0:
+        ch=merged.copy()
+        ch=ch[ch['Gene'].isin(candidateGenes)] # candidateGenes already got splitted by '.'
+        usedCandidateGenes.append(ch['Gene'].unique().tolist()) # keeping track of which candidate genes I've used so I know when to stop
+        usedCandidateGenes=flatten_list(usedCandidateGenes)
+        if ch.shape[0]==0:
+            print('skipping chromsome '+str(chromosome)+' because there are no candidate genes on this chromosome')
+            del ch
+            continue
+    
     print('Starting chromosome '+str(chromosome))
     if (analysisInPhenotypeLoci==True) & (len(candidateGenes)==0): # form gene groups
         geneGroups,ggKeys,lens,usedGenes=defGeneGroupsByOutcome(q0geneGroups, merged, KbWindow=outcomeClumpingKBWindow,closestK=numIndexGenesToFormGroup)
@@ -190,6 +195,7 @@ for _ in range(0, len(os.listdir(dirGene))):
         geneGroups,ggKeys,lens,usedGenes=defineCandidateGeneGroups(merged,candidateGenes,MbWindow=2)
     else:
         geneGroups,ggKeys,lens,usedGenes=defGeneGroups(q0geneGroups,merged)
+    print(geneGroups)
     # [print(geneGroupFinder(geneGroups,candidateGenes[i],isGtex=True if isRawGTEx else False)) for i in range(0,len(candidateGenes))]
     thingsMonitored,outerDict,edgeD=MVMRworkhorse(merged,geneGroups,ggKeys,writableDir=writableDir,ldRefDir=ldRefDir,isGtex=isRawGTEx,
                                                   analysisOnlyInOutcomeLoci=analysisInPhenotypeLoci,outcomeLociMbWindow=outcomeLociMbWindow,
@@ -214,8 +220,9 @@ for _ in range(0, len(os.listdir(dirGene))):
         res=adjustInflation(res,numpy.max((1,infl)))
     runningres=pandas.concat([runningres,res.copy()])
     # if user wanted to save raw data, do that now inside of the chosen directory
-    if saveData:
-        fpout=args.whereSaveRawData+'/'
+    if saveData: 
+        fpout=os.path.abspath(args.whereSaveRawData)+'/'
+        print('raw data are saved in the "bybx.txt", "UU.txt", and "LD.txt" files in the {} directory'.format(fpout))
         ln=list(outerDict)[0]
         numpy.savetxt(fpout+'bybx.txt',numpy.column_stack((outerDict[ln]['by'],outerDict[ln]['bX'])))
         numpy.savetxt(fpout+'UU.txt',outerDict[ln]['UU'])
