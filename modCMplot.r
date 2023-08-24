@@ -572,7 +572,7 @@ CMplot <- function(
             if(file=="jpg") jpeg(paste("Marker_Density.",ifelse(file.name=="",taxa,file.name[1]),".jpg",sep=""), width=wh*dpi,height=ht*dpi,res=dpi,quality=100)
             if(file=="pdf") pdf(paste("Marker_Density.",ifelse(file.name=="",taxa,file.name[1]),".pdf",sep=""), width=wh,height=ht)
             if(file=="tiff")    tiff(paste("Marker_Density.",ifelse(file.name=="",taxa,file.name[1]),".tiff",sep=""), width=wh*dpi,height=ht*dpi,res=dpi)
-            if(file=="png") png(paste("Marker_Density.",ifelse(file.name=="",taxa,file.name[1]),".png",sep=""), width=wh*dpi,height=ht*dpi,res=dpi,bg=NA)
+            if(file=="png") png(paste("Marker_Density.",ifelse(file.name=="",taxa,file.name[1]),".png",sep=""), width=wh*dpi,height=ht*dpi,res=dpi)
             # par(xpd=TRUE)
             par(mar=c(mar[1]-2, mar[2]-1, mar[3]+1, mar[4]))
         }else{
@@ -816,7 +816,7 @@ CMplot <- function(
             if(file=="jpg") jpeg(paste(ifelse(file.name=="",taxa,file.name[1]),".jpg",sep=""), width=wh*dpi,height=ht*dpi,res=dpi,quality=100)
             if(file=="pdf") pdf(paste(ifelse(file.name=="",taxa,file.name[1]),".pdf",sep=""), width=wh,height=ht)
             if(file=="tiff")    tiff(paste(ifelse(file.name=="",taxa,file.name[1]),".tiff",sep=""), width=wh*dpi,height=ht*dpi,res=dpi)
-            if(file=="png") png(paste(ifelse(file.name=="",taxa,file.name[1]),".png",sep=""), width=wh*dpi,height=ht*dpi,res=dpi,bg=NA)
+            if(file=="png") png(paste(ifelse(file.name=="",taxa,file.name[1]),".png",sep=""), width=wh*dpi,height=ht*dpi,res=dpi)
             par(pty="s", xpd=TRUE, mar=c(1,1,1,1))
         }
         if(!file.output){
@@ -1383,7 +1383,7 @@ CMplot <- function(
                     if(file=="jpg") jpeg(paste("Multi-tracks_Manhtn.",ifelse(file.name=="",taxa,file.name[1]),".jpg",sep=""), width=wh*dpi,height=ht*dpi*R,res=dpi,quality=100)
                     if(file=="pdf") pdf(paste("Multi-tracks_Manhtn.",ifelse(file.name=="",taxa,file.name[1]),".pdf",sep=""), width=wh,height=ht*R)
                     if(file=="tiff")    tiff(paste("Multi-tracks_Manhtn.",ifelse(file.name=="",taxa,file.name[1]),".tiff",sep=""), width=wh*dpi,height=ht*dpi*R,res=dpi)
-                    if(file=="png") png(paste("Multi-tracks_Manhtn.",ifelse(file.name=="",taxa,file.name[1]),".png",sep=""), width=wh*dpi,height=ht*dpi*R,res=dpi,bg=NA)
+                    if(file=="png") png(paste("Multi-tracks_Manhtn.",ifelse(file.name=="",taxa,file.name[1]),".png",sep=""), width=wh*dpi,height=ht*dpi*R,res=dpi)
                     par(mfcol=c(R,1), xaxs="i")
                 }
                 if(!file.output){
@@ -1576,7 +1576,7 @@ CMplot <- function(
                     if(file=="jpg") jpeg(paste("Multi-traits_Manhtn.",ifelse(file.name=="",taxa,file.name[1]),".jpg",sep=""), width=wh*dpi,height=ht*dpi,res=dpi,quality=100)
                     if(file=="pdf") pdf(paste("Multi-traits_Manhtn.",ifelse(file.name=="",taxa,file.name[1]),".pdf",sep=""), width=wh,height=ht)
                     if(file=="tiff")    tiff(paste("Multi-traits_Manhtn.",ifelse(file.name=="",taxa,file.name[1]),".tiff",sep=""), width=wh*dpi,height=ht*dpi,res=dpi)
-                    if(file=="png") png(paste("Multi-traits_Manhtn.",ifelse(file.name=="",taxa,file.name[1]),".png",sep=""), width=wh*dpi,height=ht*dpi,res=dpi,bg=NA)
+                    if(file=="png") png(paste("Multi-traits_Manhtn.",ifelse(file.name=="",taxa,file.name[1]),".png",sep=""), width=wh*dpi,height=ht*dpi,res=dpi)
                     if(!is.null(trait.legend.ncol) && trait.legend.pos=="middle"){
                         mar[3] = mar[3] + ceiling(length(trait) / trait.legend.ncol)
                     }
@@ -1844,7 +1844,7 @@ CMplot <- function(
                         if(file=="jpg") jpeg(paste(ifelse(file.name=="",trait[i],file.name[i]),".jpg",sep=""), width=wh*dpi,height=ht*dpi,res=dpi,quality=100)
                         if(file=="pdf") pdf(paste(ifelse(file.name=="",trait[i],file.name[i]),".pdf",sep=""), width=wh,height=ht)
                         if(file=="tiff")    tiff(paste(ifelse(file.name=="",trait[i],file.name[i]),".tiff",sep=""), width=wh*dpi,height=ht*dpi,res=dpi)
-                        if(file=="png") png(paste(ifelse(file.name=="",trait[i],file.name[i]),".png",sep=""), width=wh*dpi,height=ht*dpi,res=dpi,bg=NA)
+                        if(file=="png") png(paste(ifelse(file.name=="",trait[i],file.name[i]),".png",sep=""), width=wh*dpi,height=ht*dpi,res=dpi)
                         par(mar=mar,xaxs="i",yaxs="r")
                     }
                     if(!file.output){
@@ -2101,7 +2101,7 @@ CMplot <- function(
                     if(file=="jpg") jpeg(paste("Multi-tracks_QQplot.",ifelse(file.name=="",taxa,file.name[1]),".jpg",sep=""), width=R*wh*dpi,height=ht*dpi,res=dpi,quality=100)
                     if(file=="pdf") pdf(paste("Multi-tracks_QQplot.",ifelse(file.name=="",taxa,file.name[1]),".pdf",sep=""), width=R*wh,height=ht)
                     if(file=="tiff")    tiff(paste("Multi-tracks_QQplot.",ifelse(file.name=="",taxa,file.name[1]),".tiff",sep=""), width=R*wh*dpi,height=ht*dpi,res=dpi)
-                    if(file=="png") png(paste("Multi-tracks_QQplot.",ifelse(file.name=="",taxa,file.name[1]),".png",sep=""), width=R*wh*dpi,height=ht*dpi,res=dpi,bg=NA)
+                    if(file=="png") png(paste("Multi-tracks_QQplot.",ifelse(file.name=="",taxa,file.name[1]),".png",sep=""), width=R*wh*dpi,height=ht*dpi,res=dpi)
                     par(mfcol=c(1,R),xpd=TRUE)
                 }else{
                     ht=ifelse(is.null(height), 5.5, height)
@@ -2222,7 +2222,7 @@ CMplot <- function(
                     if(file=="jpg") jpeg(paste("Multi-traits_QQplot.",ifelse(file.name=="",taxa,file.name[1]),".jpg",sep=""), width=wh*dpi,height=ht*dpi,res=dpi,quality=100)
                     if(file=="pdf") pdf(paste("Multi-traits_QQplot.",ifelse(file.name=="",taxa,file.name[1]),".pdf",sep=""), width=wh,height=ht)
                     if(file=="tiff")    tiff(paste("Multi-traits_QQplot.",ifelse(file.name=="",taxa,file.name[1]),".tiff",sep=""), width=wh*dpi,height=ht*dpi,res=dpi)
-                    if(file=="png") png(paste("Multi-traits_QQplot.",ifelse(file.name=="",taxa,file.name[1]),".png",sep=""), width=wh*dpi,height=ht*dpi,res=dpi,bg=NA)
+                    if(file=="png") png(paste("Multi-traits_QQplot.",ifelse(file.name=="",taxa,file.name[1]),".png",sep=""), width=wh*dpi,height=ht*dpi,res=dpi)
                     par(mar=c(mar[2],mar[2],mar[3],mar[4]),xpd=TRUE)
                 }else{  
                     ht=ifelse(is.null(height), 5.5, height)
@@ -2356,7 +2356,7 @@ CMplot <- function(
                     if(file=="jpg") jpeg(paste("QQplot.",ifelse(file.name=="",trait[i],file.name[i]),".jpg",sep=""), width=wh*dpi,height=ht*dpi,res=dpi,quality=100)
                     if(file=="pdf") pdf(paste("QQplot.",ifelse(file.name=="",trait[i],file.name[i]),".pdf",sep=""), width=wh,height=ht)
                     if(file=="tiff") tiff(paste("QQplot.",ifelse(file.name=="",trait[i],file.name[i]),".tiff",sep=""), width=wh*dpi,height=ht*dpi,res=dpi)
-                    if(file=="png") png(paste("QQplot.",ifelse(file.name=="",trait[i],file.name[i]),".png",sep=""), width=wh*dpi,height=ht*dpi,res=dpi,bg=NA)
+                    if(file=="png") png(paste("QQplot.",ifelse(file.name=="",trait[i],file.name[i]),".png",sep=""), width=wh*dpi,height=ht*dpi,res=dpi)
                     par(mar=c(mar[2],mar[2],mar[3],mar[4]),xpd=TRUE)
                 }else{
                     ht=ifelse(is.null(height), 5.5, height)
