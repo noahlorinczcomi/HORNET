@@ -49,7 +49,7 @@ parser.add_argument('-rsid','--phenoRSID',action='store',type=str,default='SNP',
 parser.add_argument('-pz','--phenoZ',action='store',type=str,default='Z',help='(Required if no P-value column in phenotype GWAS data) column name in phenotype GWAS indicating Z-statistics for associations between SNPs and phenotype.')
 parser.add_argument('-pp','--phenoP',action='store',type=str,default='missing',help='(Required if no Z-statistic column in phenotype GWAS data) column name indicating P-value for association in the phenotype GWAS data.')
 parser.add_argument('-psig','--phenoPSignifThres',action='store',type=float,default=5e-8,help='(Optional) P-value threshold for classifying an SNP as "significantly" associated with the outcome/phenotype. The default is 5e-8.')
-parser.add_argument('-pr2','--phenoR2Thres',action='store',type=float,default=0.1,help='(Optional) SNPs in LD beyond this threshold with a lead outcome/phenotype SNP will be considered part of the same locus as the lead outcome SNP. The defaul is 0.1.')
+parser.add_argument('-pr2','--phenoR2Thres',action='store',type=float,default=0.1,help='(Optional) SNPs in LD beyond this threshold with a lead outcome/phenotype SNP will be considered part of the same locus as the lead outcome SNP. The default is 0.1.')
 parser.add_argument('-pkb','--phenoKbThres',action='store',type=int,default=500,help='(Optional) Size of window in which PLINK should clump SNPs to identify idependent outcome signals. The default is 500, which means 500Kb.')
 parser.add_argument('-hpv','--hornetSignifPThres',action='store',type=float,default=5e-5,help='(Optional) Genes with a P-value from HORNET less than this threshold will be considered detected/statistically significant. The default is 5e-5.')
 parser.add_argument('-hr','--hornetRSquaredThres',action='store',type=float,default=0.10,help='(Optional) Genes in a locus that explains at least this much outcome/phenotype variance will be considered detected/statistically significant. The default is 0.1.')
@@ -119,7 +119,7 @@ for _ in range(0,len(chrs)): # for each chromosome in the results
     clumpchrdf=oc[oc['CHR']==chrs[_]]
     if clumpchrdf.shape[0]==0:
         novelGenes.append(reschrdf['Gene'].unique().tolist())
-        novelchrs.append((reschrdf['Chromosome'].values.tolist()))
+        novelchrs.append((reschrdf['Chromosome'].values)[0]*reschrdf.shape[0])
         closestSNPs.append([float('nan')]*reschrdf.shape[0])
         closestBPs.append([float('nan')]*reschrdf.shape[0])
         closestPs.append([float('nan')]*reschrdf.shape[0])
