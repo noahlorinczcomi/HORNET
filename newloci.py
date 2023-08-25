@@ -59,7 +59,7 @@ parser.add_argument('-o','--out',action='store',type=str,default='newgenes',help
 parser.add_argument('-p','--print',action='store',type=str,default='yes',help='(Optional) Should results also be printed to the console? The default is "yes".')
 args=parser.parse_args()
 if args.message.lower() in ['yes','true']:
-    print('\n\n NOTE! Use of this is only informative if you used HORNET to analyze loci that \n were "less significant" than what you are calling a "significant" outcome locus here\n\n you can silence this message by adding the "-m no" flag.\n\n')
+    print('\n\n NOTE! Use of this is only informative if you used HORNET to analyze loci that \n could have been "less significant" than what you are calling a "significant" outcome locus here\n\n you can silence this message by adding the "-m no" flag.\n\n')
 ### steps
 # 1) make sure PLINK can read the outcome GWAS
 # 2) perform clumping
@@ -107,11 +107,13 @@ novelGenes=[]
 novelchrs=[]
 closestSNPs=[]
 closestBPs=[]
+closestPs=[]
 for _ in range(0,len(chrs)): # for each chromosome in the results
     novelGenes=flatten_list(novelGenes)
     novelchrs=flatten_list(novelchrs)
     closestSNPs=flatten_list(closestSNPs)
     closestBPs=flatten_list(closestBPs)
+    closestPs=flatten_list(closestPs)
     # 
     reschrdf=res[res['Chromosome']==chrs[_]]
     clumpchrdf=oc[oc['CHR']==chrs[_]]
@@ -120,6 +122,7 @@ for _ in range(0,len(chrs)): # for each chromosome in the results
         novelchrs.append((reschrdf['Chromosome'].values.tolist()))
         closestSNPs.append([float('nan')]*reschrdf.shape[0])
         closestBPs.append([float('nan')]*reschrdf.shape[0])
+        closestPs.append([float('nan')]*reschrdf.shape[0])
         continue
     for j in range(0,reschrdf.shape[0]):
         # is the significant gene in HORNET within args.novelKbWindow of any known signals?
@@ -131,11 +134,15 @@ for _ in range(0,len(chrs)): # for each chromosome in the results
             closeix=numpy.argmin(alldist)
             closestSNPs.append((clumpchrdf['SNP'].values)[closeix])
             closestBPs.append((clumpchrdf['BP'].values)[closeix])
+            closestPs.append((clumpchrdf['P'].values)[closeix])
+if len(novelGenes)==0:
+    raise ValueError('\n\n no significant genes given your definition of "significant"')
 novelGenes=numpy.array(flatten_list(novelGenes))
 closestSNPs=numpy.array(flatten_list(closestSNPs))
 closestBPs=numpy.array(flatten_list(closestBPs))
+closestPs=numpy.array(flatten_list(closestPs))
 # be prepared to tell the user which outcome signals were the closest to these genes
-pdf=pandas.DataFrame({'NovelGene':novelGenes,'Chromosome':novelchrs,'ClosestOutcomeSNP':closestSNPs,'ClosestOutcomeSNPBP':closestBPs})
+pdf=pandas.DataFrame({'NovelGene':novelGenes,'Chromosome':novelchrs,'ClosestPhenoSNP':closestSNPs,'ClosestPhenoBP':closestBPs,'ClosestPhenoPvalue':closestPs})
 # add other info like pratt index etc
 res=res.rename(columns={'Gene':'NovelGene','RsquaredMRJones':'LocusR2','Q':'CausalChisq'})
 pdf=pandas.merge(pdf,res[['NovelGene','geneBP','Pratt','CausalChisq','LocusR2']],how='left',left_on='NovelGene',right_on='NovelGene')
@@ -144,16 +151,15 @@ pdf['NovelGene']=pdf['NovelGene'].apply(lambda x: x.split('.')[0])
 gk=pandas.read_csv(os.path.abspath('data/biomart_gene_legend.csv.gz'),sep=None,engine='python')
 pdf=pandas.merge(pdf,gk.rename(columns={'EnsemblID':'NovelGene'}),how='left',left_on='NovelGene',right_on='NovelGene')
 pdf=pdf.rename(columns={'GeneName':'NovelGeneName'})
-pdf=pdf[['NovelGene','NovelGeneName','Chromosome','geneBP','CausalChisq','Pratt','LocusR2','ClosestOutcomeSNP','ClosestOutcomeSNPBP']]
+pdf=pdf[['NovelGene','NovelGeneName','Chromosome','geneBP','CausalChisq','Pratt','LocusR2','ClosestPhenoSNP','ClosestPhenoBP','ClosestPhenoPvalue']]
 doprint=(args.print.lower()=='yes') | (args.print.lower()=='true')
 if doprint:
     print(pdf)
 # save out
 fpout=os.path.abspath(args.out)+'.csv'
-pdf.to_csv(fpout)
+pdf.to_csv(fpout,index=False)
 print('\n Novel genes are saved to {}'.format(fpout))
 # remove stuff I wrote out
-
 cmd=[callDelete(),os.path.abspath(os.getcwd())+'/a.log']
 out=subprocess.call(cmd,stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT) # executing the command in the terminal
 cmd=[callDelete(),os.path.abspath(os.getcwd())+'/a.clumped']
