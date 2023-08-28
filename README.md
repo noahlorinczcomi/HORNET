@@ -94,11 +94,12 @@ python hornet.py --eQTLGWAS data/testdata/eQTLGen \
  --effectAlleles AssessedAllele,A1 \
  --eQTLGeneLabel Gene \
  --eQTLGeneBP GenePos \
- --networksInTopKLoci 10 \
  --out ./AD_blood
 ```
 
 where the second value in each comma-separated argument corresponds to the phenotype (AD) and the first to the eQTL GWAS data. See all files in the `data/ldref/` directory if you want to choose a different 1kg Phase 3 population as the LD reference panel.
+
+Be sure to replace '\' with '^' if you're on a Windows machine.
 
 ## eQTL summary data from GTEx
 Certain aspects of the command given to HORNET change when the eQTL GWAS data is directly from GTEx. Here is the basic command to give HORNET in this case:
@@ -114,7 +115,6 @@ python hornet.py --eQTLGWAS data/testdata/GTEx \
  --effectAlleles gtex,A1 \
  --eQTLGeneLabel gtex \
  --eQTLGeneBP gtex \
- --networksInTopKLoci 10 \
  --out ./AD_frontal_cortex
 ```
 
