@@ -84,7 +84,7 @@ if (os.listdir(args.eQTLGWAS))==0:
 # output directory for graphs
 # graphoutdir=args.networkGraphsOut+'/' if args.networkGraphsOut!='plots' else os.getcwd()+'/plots/'
 if os.path.isdir(os.path.abspath(args.networkGraphsOut))==False:
-    raise ValueError('\n It looks like the directory you want to save network graph plots to does not exist({})'.format(graphoutdir))
+    raise ValueError('\n It looks like the directory you want to save network graph plots to does not exist({})'.format(args.networkGraphsOut))
 
 ## 
 candidateGenes=args.candidateGenes.split(',') if len(args.candidateGenes)>0 else []
@@ -299,7 +299,7 @@ if (runningres.shape[1]>1) & (graphNetworks):
         nx.draw(G, with_labels=True,ax=fig.add_subplot(),alpha=0.5,font_size=10,node_color='skyblue') # all same color - less likely to produce an error
         leadgene=dcut.loc[abs(dcut['MRJonesEst']).idxmax()]['Gene']
         leadgene=leadgene.split('.')[0]
-        fig.savefig(graphoutdir+'/'+args.graphNetworksFilePrefix+'_'+leadgene+'_graph.png',dpi=500)
+        fig.savefig(os.path.abspath(args.networkGraphsOut)+'/'+args.graphNetworksFilePrefix+'_'+leadgene+'_graph.png',dpi=500)
         hasSaved=True
         ### run if using as an example
         # edges=numpy.array([[0,1,0],[1,0,1],[0,1,0]])
@@ -308,7 +308,7 @@ if (runningres.shape[1]>1) & (graphNetworks):
 
 print(' ')
 if graphNetworks & hasSaved:
-    print('Network graphs are saved in the '+graphoutdir+' folder')
+    print('Network graphs are saved in the '+os.path.abspath(graphoutdir)+' folder')
 
 # finally, if user has R installed, execute commands in HORNET/plotres.r
 from subprocess import Popen, PIPE
