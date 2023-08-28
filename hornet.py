@@ -82,8 +82,8 @@ fileChecker('/'.join(od), 'output/results directory')
 if (os.listdir(args.eQTLGWAS))==0:
     raise ValueError('It looks like there are no files in the eQTL GWAS directory ({})'.format(args.eQTLGWAS))
 # output directory for graphs
-graphoutdir=args.networkGraphsOut+'/' if args.networkGraphsOut!='plots' else os.getcwd()+'/plots/'
-if os.path.isdir(os.path.abspath(graphoutdir))==False:
+# graphoutdir=args.networkGraphsOut+'/' if args.networkGraphsOut!='plots' else os.getcwd()+'/plots/'
+if os.path.isdir(os.path.abspath(args.networkGraphsOut))==False:
     raise ValueError('\n It looks like the directory you want to save network graph plots to does not exist({})'.format(graphoutdir))
 
 ## 
@@ -299,7 +299,7 @@ if (runningres.shape[1]>1) & (graphNetworks):
         nx.draw(G, with_labels=True,ax=fig.add_subplot(),alpha=0.5,font_size=10,node_color='skyblue') # all same color - less likely to produce an error
         leadgene=dcut.loc[abs(dcut['MRJonesEst']).idxmax()]['Gene']
         leadgene=leadgene.split('.')[0]
-        fig.savefig(graphoutdir+args.graphNetworksFilePrefix+'_'+leadgene+'_graph.png',dpi=500)
+        fig.savefig(graphoutdir+'/'+args.graphNetworksFilePrefix+'_'+leadgene+'_graph.png',dpi=500)
         hasSaved=True
         ### run if using as an example
         # edges=numpy.array([[0,1,0],[1,0,1],[0,1,0]])
