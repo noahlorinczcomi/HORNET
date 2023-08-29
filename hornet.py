@@ -236,12 +236,19 @@ for _ in range(0, len(os.listdir(dirGene))):
         runningres.to_csv(args.out+'_tempresults.txt',sep='\t')
         runningdiagnostics.to_csv(args.out+'_diagnostics.txt',sep='\t')
 
+# if no chromosomes could be analyzed, there is nothing to save - tell the user and exit
+if runningres.shape[0]==0:
+    raise ValueError('\n\n Not genes could be analyzed in these data.\n Consider adjusting your criteria for forming gene groups, IV sets, etc., or the data itself\nas the cause of this result\n\n')
+
 fp1=os.path.abspath(args.out)+'_results.txt'
 fp2=os.path.abspath(args.out)+'_diagnostics.txt'
 # did the user want us to clean up the results?
 cleanres=(args.cleanResults.lower()=='yes') | (args.cleanResults.lower()=='true')
 if cleanres:
     cr=runningres.copy()
+    print(cr.head())
+    print(cr.columns)
+    print(type(cr.columns))
     cr['Pratt']=cr['MRBEEPostSelec_MVMR_Est']*cr['MRBEE_UVMR_Est']
     cr['GeneSelected']=cr['MRJonesEst']!=0
     cr=cr[['Gene','geneBP','Chromosome','GeneSelected','MRBEEPostSelec_MVMR_Est','MRBEEPostSelec_MVMR_SE','RsquaredMRJones','Pratt','CHRspecificGroupID']]
@@ -254,24 +261,29 @@ runningdiagnostics.to_csv(fp2,sep='\t')
 # also save a copy of runningres to HORNET/res.csv so it can be read by plotres.r
 copyfpout=os.path.abspath(os.getcwd())
 runningres.to_csv(copyfpout+'/res.csv') # full (not super cleaned) data will still be written
+print('Results are written to '+fp1)
+print('Analysis diagnostics are written to '+fp2)
 # save executing commands of plotres.r for later - don't want to cause an early error bc users don't have R installed
 
 # delete iteratively saven files if user chose to iteratively save results
-delcmd='del' if platform.system()=='Windows' else 'rm'
-if (args.iterativelySave.lower()=='true') | (args.iterativelySave.lower()=='yes'):
-    out=subprocess.call([delcmd, args.out+'_tempresults.txt'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-print('Results are written to '+fp1)
-print('Analysis diagnostics are written to '+fp2)
+# op=os.path.abspath(args.out+'_tempresults.txt')
+# print(op)
+# print(callDelete()+op)
+# if (args.iterativelySave.lower()=='true') | (args.iterativelySave.lower()=='yes'):
+#     if platform.system()!='Windows':
+#         out=subprocess.call([callDelete(), op],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT,shell=True)
 
-# remove unnecessary files
-# now I want to remove these files I just wrote out because they may be large
-delcall=callDelete()
-out=subprocess.call([delcall, writableDir+'/tempOut.ld'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-out=subprocess.call([delcall, writableDir+'/tempOut.log'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-out=subprocess.call([delcall, writableDir+"/myExtract.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-out=subprocess.call([delcall, writableDir+"/outcomeplinkout.clumped"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-out=subprocess.call([delcall, writableDir+"/outcomeplinkout.log"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-out=subprocess.call([delcall, writableDir+"/outcomePsout.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+
+# # remove unnecessary files
+# # now I want to remove these files I just wrote out because they may be large
+# delcall=callDelete()
+# awd=os.path.abspath(writableDir)
+# out=subprocess.call([delcall, awd+'/tempOut.ld'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+# out=subprocess.call([delcall, awd+'/tempOut.log'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+# out=subprocess.call([delcall, awd+"/myExtract.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+# out=subprocess.call([delcall, awd+"/outcomeplinkout.clumped"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+# out=subprocess.call([delcall, awd+"/outcomeplinkout.log"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+# out=subprocess.call([delcall, awd+"/outcomePsout.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
 
 ### network construction (done in Python)
 # first find top args.networksInTopKLoci loci
@@ -311,12 +323,12 @@ if graphNetworks & hasSaved:
     print('Network graphs are saved in the '+os.path.abspath(graphoutdir)+' folder')
 
 # finally, if user has R installed, execute commands in HORNET/plotres.r
-from subprocess import Popen, PIPE
-proc = Popen(["which", "R"],stdout=PIPE,stderr=PIPE)
-exit_code = proc.wait()
-if exit_code == 0:
-    cmd=['Rscript','plotres.r']
-    subprocess.call(cmd,stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+# from subprocess import Popen, PIPE
+# proc = Popen(["which", "R"],stdout=PIPE,stderr=PIPE)
+# exit_code = proc.wait()
+# if exit_code == 0:
+#     cmd=['Rscript','plotres.r']
+#     subprocess.call(cmd,stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
 print(' ')
 print('HORNET ended '+time.ctime())

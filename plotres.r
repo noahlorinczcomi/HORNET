@@ -2,8 +2,14 @@
 ############################################################################################################################################
 # ensuring necessary package exists (ggplot2) and confirm working directory
 ############################################################################################################################################
-if(!require('ggplot2')) install.packages('ggplot2')
-if(!require('ggrepel')) install.packages('ggrepel')
+if(!require('ggplot2')) {
+  print('ggplot2 required but not installed in this environment. Installing now')
+  install.packages('ggplot2',repos='http://cran.us.r-project.org')
+}
+if(!require('ggrepel')) {
+  print('ggrepel required but not installed in this environment. Installing now')
+  install.packages('ggrepel',repos='http://cran.us.r-project.org')
+}
 source("modCMplot.r") # also using CMplot
 # data must be present like this /HORNET/res.csv  --- I am going to make a cpres.py file to ensure this
 ############################################################################################################################################

@@ -1343,9 +1343,9 @@ def adjustInflation(res,infl):
 def callDelete():
     sys=platform.system()
     if (sys=='Linux') | (sys=='Darwin'):
-        call_='rm'
+        call_='rm '
     elif sys=='Windows':
-        call_='del'
+        call_='del '
     return call_
 
 def callPlink():

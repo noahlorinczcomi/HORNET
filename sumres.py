@@ -20,15 +20,25 @@ parser.add_argument('-o','--out',action='store',type=str,default='',help='(Optio
 args=parser.parse_args()
 
 # load data
-data=pandas.read_csv(args.results,engine='python',sep=None)
+data=pandas.read_csv(os.path.abspath(args.results),engine='python',sep=None)
 ### varios subsetting
-data=data[['Gene','CHRspecificGroupID','geneBP','Chromosome','MRBEEPostSelec_MVMR_Est','MRBEEPostSelec_MVMR_SE','MRBEE_UVMR_Est','RsquaredMRJones']].dropna()
-data['Pratt']=data['MRBEEPostSelec_MVMR_Est']*data['MRBEE_UVMR_Est']
-data=data[(data['Pratt']>0) & (data['Pratt']<=1)]
-sub1=data['Pratt']>args.prattThreshold
-sub2=data['RsquaredMRJones']>args.localVarianceExplainedThreshold
-z=data['MRBEEPostSelec_MVMR_Est']/data['MRBEEPostSelec_MVMR_SE']
-data['CausalPvalue']=2*norm.cdf(-abs(z),0,1)
+isclean='SE' in data.columns
+if isclean:
+    data=data[['Gene','CHRspecificGroupID','geneBP','Chromosome','Est','SE','R2','Pratt']].dropna()
+    data=data[(data['Pratt']>0) & (data['Pratt']<=1)]
+    sub1=data['Pratt']>args.prattThreshold
+    sub2=data['R2']>args.localVarianceExplainedThreshold
+    z=data['Est']/data['SE']
+    data['CausalPvalue']=2*norm.cdf(-abs(z),0,1)
+else:
+    data=data[['Gene','CHRspecificGroupID','geneBP','Chromosome','MRBEEPostSelec_MVMR_Est','MRBEEPostSelec_MVMR_SE','MRBEE_UVMR_Est','RsquaredMRJones']].dropna()
+    data['Pratt']=data['MRBEEPostSelec_MVMR_Est']*data['MRBEE_UVMR_Est']
+    data=data[(data['Pratt']>0) & (data['Pratt']<=1)]
+    sub1=data['Pratt']>args.prattThreshold
+    sub2=data['RsquaredMRJones']>args.localVarianceExplainedThreshold
+    z=data['MRBEEPostSelec_MVMR_Est']/data['MRBEEPostSelec_MVMR_SE']
+    data['CausalPvalue']=2*norm.cdf(-abs(z),0,1)
+
 sub3=abs(z)>norm.ppf(1-args.pValueThreshold)
 subs=numpy.column_stack((sub1,sub2,sub3))
 keepers=subs.sum(axis=1)==3
@@ -42,11 +52,15 @@ topg=topg.sort_values('Pratt',ascending=False)
 topg=topg.iloc[:args.topKGenes,:]
 pgenes=pandas.merge(topg,cdata,how='left',left_on='Pratt',right_on='Pratt') # note I am merging on Pratt - should work, unlikely to get 6-9 digits of the same by chance
 pgenes['GeneMarkername']=pgenes['Chromosome'].astype(str)+':'+pgenes['geneBP'].astype(str)
-pgenes=pgenes[['Gene','GeneMarkername','Pratt','RsquaredMRJones','CausalPvalue']]
+if isclean:
+    pgenes=pgenes[['Gene','GeneMarkername','Pratt','R2','CausalPvalue']]
+else:
+    pgenes=pgenes[['Gene','GeneMarkername','Pratt','RsquaredMRJones','CausalPvalue']]
+
 printbool=(args.print.lower()=='yes') | (args.print.lower()=='true')
 if printbool:
     print(pgenes)
 
 # save
 if args.out!='':
-    pgenes.drop_duplicates().to_csv(args.out+'.csv')
+    pgenes.drop_duplicates().to_csv(os.path.abspath(args.out)+'.csv')
