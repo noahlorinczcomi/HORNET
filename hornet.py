@@ -267,17 +267,17 @@ print('Analysis diagnostics are written to '+fp2)
 
 # delete iteratively saven files if user chose to iteratively save results
 if platform.system()!='Windows':
-op=os.path.abspath(args.out+'_tempresults.txt')
-if (args.iterativelySave.lower()=='true') | (args.iterativelySave.lower()=='yes'):
-    out=subprocess.call([callDelete(), op],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-    delcall=callDelete()
-    awd=os.path.abspath(writableDir)
-    out=subprocess.call([delcall, awd+'/tempOut.ld'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-    out=subprocess.call([delcall, awd+'/tempOut.log'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-    out=subprocess.call([delcall, awd+"/myExtract.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-    out=subprocess.call([delcall, awd+"/outcomeplinkout.clumped"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-    out=subprocess.call([delcall, awd+"/outcomeplinkout.log"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-    out=subprocess.call([delcall, awd+"/outcomePsout.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+    op=os.path.abspath(args.out+'_tempresults.txt')
+    if (args.iterativelySave.lower()=='true') | (args.iterativelySave.lower()=='yes'):
+        out=subprocess.call([callDelete(), op],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+        delcall=callDelete()
+        awd=os.path.abspath(writableDir)
+        out=subprocess.call([delcall, awd+'/tempOut.ld'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+        out=subprocess.call([delcall, awd+'/tempOut.log'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+        out=subprocess.call([delcall, awd+"/myExtract.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+        out=subprocess.call([delcall, awd+"/outcomeplinkout.clumped"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+        out=subprocess.call([delcall, awd+"/outcomeplinkout.log"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+        out=subprocess.call([delcall, awd+"/outcomePsout.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
 
 ### network construction (done in Python)
 # first find top args.networksInTopKLoci loci
