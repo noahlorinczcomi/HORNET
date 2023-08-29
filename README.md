@@ -97,7 +97,7 @@ python hornet.py --eQTLGWAS data/testdata/eQTLGen \
 
 where the second value in each comma-separated argument corresponds to the phenotype (AD) and the first to the eQTL GWAS data. See all files in the `data/ldref/` directory if you want to choose a different 1kg Phase 3 population as the LD reference panel.
 
-Be sure to replace '\\' with '^' if you're on a Windows machine.
+**Be sure to replace '\\' with '^' if you're on a Windows machine.**
 
 ## eQTL summary data from GTEx
 Certain aspects of the command given to HORNET change when the eQTL GWAS data is directly from GTEx. This is because HORNET knows exactly what to expect from eQTL GWAS data from GTEx. Here is the basic command to give HORNET in this case:
