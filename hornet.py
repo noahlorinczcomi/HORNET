@@ -246,9 +246,6 @@ fp2=os.path.abspath(args.out)+'_diagnostics.txt'
 cleanres=(args.cleanResults.lower()=='yes') | (args.cleanResults.lower()=='true')
 if cleanres:
     cr=runningres.copy()
-    print(cr.head())
-    print(cr.columns)
-    print(type(cr.columns))
     cr['Pratt']=cr['MRBEEPostSelec_MVMR_Est']*cr['MRBEE_UVMR_Est']
     cr['GeneSelected']=cr['MRJonesEst']!=0
     cr=cr[['Gene','geneBP','Chromosome','GeneSelected','MRBEEPostSelec_MVMR_Est','MRBEEPostSelec_MVMR_SE','RsquaredMRJones','Pratt','CHRspecificGroupID']]
