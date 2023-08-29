@@ -266,24 +266,18 @@ print('Analysis diagnostics are written to '+fp2)
 # save executing commands of plotres.r for later - don't want to cause an early error bc users don't have R installed
 
 # delete iteratively saven files if user chose to iteratively save results
-# op=os.path.abspath(args.out+'_tempresults.txt')
-# print(op)
-# print(callDelete()+op)
-# if (args.iterativelySave.lower()=='true') | (args.iterativelySave.lower()=='yes'):
-#     if platform.system()!='Windows':
-#         out=subprocess.call([callDelete(), op],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT,shell=True)
-
-
-# # remove unnecessary files
-# # now I want to remove these files I just wrote out because they may be large
-# delcall=callDelete()
-# awd=os.path.abspath(writableDir)
-# out=subprocess.call([delcall, awd+'/tempOut.ld'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-# out=subprocess.call([delcall, awd+'/tempOut.log'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-# out=subprocess.call([delcall, awd+"/myExtract.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-# out=subprocess.call([delcall, awd+"/outcomeplinkout.clumped"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-# out=subprocess.call([delcall, awd+"/outcomeplinkout.log"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-# out=subprocess.call([delcall, awd+"/outcomePsout.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+if platform.system()!='Windows':
+op=os.path.abspath(args.out+'_tempresults.txt')
+if (args.iterativelySave.lower()=='true') | (args.iterativelySave.lower()=='yes'):
+    out=subprocess.call([callDelete(), op],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+    delcall=callDelete()
+    awd=os.path.abspath(writableDir)
+    out=subprocess.call([delcall, awd+'/tempOut.ld'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+    out=subprocess.call([delcall, awd+'/tempOut.log'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+    out=subprocess.call([delcall, awd+"/myExtract.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+    out=subprocess.call([delcall, awd+"/outcomeplinkout.clumped"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+    out=subprocess.call([delcall, awd+"/outcomeplinkout.log"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+    out=subprocess.call([delcall, awd+"/outcomePsout.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
 
 ### network construction (done in Python)
 # first find top args.networksInTopKLoci loci
