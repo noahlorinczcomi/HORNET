@@ -11,7 +11,7 @@ The HORNET, MR-Jones, and MRBEE papers can be found from the following reference
 All methods of downloading HORNET require that you are able to type 'python' at your command line and a Python (v3.7.0 or later) console opens. This can be easily achieved by downloading [Anaconda](https://www.anaconda.com/download/).
 
 ## Windows users
-Download the `windowsconfig.bat` file from [here](https://github.com/noahlorinczcomi/HORNET/blob/main/windowsconfig.bat) (there is a download link on the page) and move it to some folder where you would like HORNET to be. Double-click on the file and HORNET will be installed. You can run HORNET from the command line by copy/pasting the commands in the tutorial below, or you can use the desktop GUI version.
+Download the `windowsconfig.bat` file from [here](https://github.com/noahlorinczcomi/HORNET/blob/main/windowsconfig.bat) (there is a download link on the page) and move it to some folder where you would like HORNET to be. Double-click on the file and HORNET will be installed. 2.3GB worth of GWAS data will be installed so you can complete this tutorial, but you can remove it when you're done by removing the `HORNET/data/testdata/` folder. You can run HORNET from the command line by copy/pasting the commands in the [Tutorial](#Tutorial) section below, or you can use the desktop GUI version.
 
 ## Linux/Mac users
 If you are using Linux or a Mac, copy/paste the commands below into your terminal or Anaconda prompt.
@@ -23,6 +23,8 @@ tar -xvf hornet_data.tar && rm hornet_data.tar example_man_vol_plots.png
 mkdir tempfiles plots results
 pip install -r requirements.txt
 ```
+
+The `hornet_data.tar.gz` file is 3.6GB but 2.3GB of those are just for this tutorial. After you're done, run `rm -r testdata` to reduce HORNET's size to 1.3GB.
 
 Lastly, depending if you're using Linux or Mac, execute one of the following:
 ```unix
@@ -61,7 +63,7 @@ Now, in the `HORNET` directory, you should see the following folders and files:
 # Tutorial
 This tutorial will use the command line to perform analyses with HORNET. We still need access to python from our command prompt, which can be achieved if we are using the Anaconda prompt.
 
-## Background on what we are doing
+## Data
 We want to perform genome-wide searches for genes with evidence of causality with a phenotype when they are expressed in a particular tissue. (You can test multiple tissues separately using HORNET multiple times). This means that need eQTL GWAS summary statistics that contain estimates of association between SNPs and the expression of all genes within some Mb window of them (usually +-1Mb). Since the scale of these data can be enormous when combined across the entire measurable genome, one file for each chromosome should exist in a folder. Nothing else should exist in this folder.
 
 For this tutorial, we have already downloaded GWAS summary data for Alzheimer's disease (AD) from [Jansen et al. (2019)](https://doi.org/10.1038/s41588-018-0311-9) and gene expression data in cortex tissue from [MetaBrain](https://www.metabrain.nl/)  and in thyroid tissue from the [GTEx Consortium](https://gtexportal.org/home/) for chromsomes 6 and 17. *Note*, you can remove these data sets from the `HORNET/data/testdata/` directory to save space after completing this tutorial.
@@ -72,7 +74,7 @@ AD GWAS data are stored directly in the `HORNET/data/testdata/` directory under 
 
 ![](https://github.com/noahlorinczcomi/HORNET/blob/main/HORNET%20Computational%20Flowchart.svg)
 
-## eQTL summary data NOT from GTEx
+## eQTL GWAS data NOT from GTEx
 If the eQTL GWAS summary data is not from GTEx, HORNET must be told the following information:
 * Filepath to the folder where the eQTL GWAS summary data are located (nothing else besides these data must be present in this folder)
 * Filepath to the phenotype/disease GWAS summary data
@@ -106,7 +108,7 @@ Ideally, you will give the the `--zLabels` flag column names of Z-statistics of 
 
 **Be sure to replace '\\' with '^' if you're on a Windows machine.**
 
-## eQTL summary data from GTEx
+## eQTL GWAS data from GTEx
 Certain aspects of the command given to HORNET can change when the eQTL GWAS data is directly from GTEx. This is because HORNET knows exactly what to expect from eQTL GWAS data from GTEx. Here is the basic command to give HORNET in this case:
 
 ```unix
