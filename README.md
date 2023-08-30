@@ -19,12 +19,12 @@ If you are using Linux or a Mac, copy/paste the commands below into your termina
 ```unix
 git clone https://github.com/noahlorinczcomi/HORNET.git && cd HORNET
 wget -O hornet_data.tar http://hal.case.edu/~njl96/hornet_data.tar.gz
-tar -xvf hornet_data.tar && rm hornet_data.tar
+tar -xvf hornet_data.tar && rm hornet_data.tar example_man_vol_plots.png
 mkdir tempfiles plots results
 pip install -r requirements.txt
 ```
 
-Lastly, depending if you're using Linux or Mac, execute on of the following:
+Lastly, depending if you're using Linux or Mac, execute one of the following:
 ```unix
 chmod +x ./plinkdir/linux/plink
 chmod +x ./plinkdir/mac/plink
@@ -61,7 +61,7 @@ Now, in the `HORNET` directory, you should see the following folders and files:
 # Tutorial
 This tutorial will use the command line to perform analyses with HORNET. We still need access to python from our command prompt, which can be achieved if we are using the Anaconda prompt.
 
-## Background on what we are going
+## Background on what we are doing
 We want to perform genome-wide searches for genes with evidence of causality with a phenotype when they are expressed in a particular tissue. (You can test multiple tissues separately using HORNET multiple times). This means that need eQTL GWAS summary statistics that contain estimates of association between SNPs and the expression of all genes within some Mb window of them (usually +-1Mb). Since the scale of these data can be enormous when combined across the entire measurable genome, one file for each chromosome should exist in a folder. Nothing else should exist in this folder.
 
 For this tutorial, we have already downloaded GWAS summary data for Alzheimer's disease (AD) from [Jansen et al. (2019)](https://doi.org/10.1038/s41588-018-0311-9) and gene expression data in cortex tissue from [MetaBrain](https://www.metabrain.nl/)  and in thyroid tissue from the [GTEx Consortium](https://gtexportal.org/home/) for chromsomes 6 and 17. *Note*, you can remove these data sets from the `HORNET/data/testdata/` directory to save space after completing this tutorial.
@@ -174,7 +174,7 @@ If you have multiple versions of R installed, you should change `Rscript plotres
 ```unix
 "C:/Program Files/R/R-4.3.1/bin/Rscript" plotres.r
 ```
-Since we only used 2 chromosomes for this example, Manhattan and volcano plots may not be very attractive to look at. Below are examples from whole-genome searches
+Since we only used 2 chromosomes for this example, Manhattan and volcano plots may not be very attractive to look at. Below are examples from whole-genome searches using the same data sources and tissues.
 
 ![](https://github.com/noahlorinczcomi/HORNET/blob/main/example_man_vol_plots.png)
 
