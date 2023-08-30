@@ -89,9 +89,11 @@ res=pandas.read_csv(os.path.abspath(args.results),sep=None,engine='python')
 # did user give me complete results or cleaned results?
 if 'Est' in res.columns.tolist(): # if this is in there, they gave me clean results
     res['Q']=(res['Est']/res['SE'])**2
+    res=res.rename(columns={'R2':'RsquaredMRJones'})
 else:
     res['Q']=(res['MRBEEPostSelec_MVMR_Est']/res['MRBEEPostSelec_MVMR_SE'])**2
     res['Pratt']=res['MRBEEPostSelec_MVMR_Est']*res['MRBEEPostSelec_MVMR_SE']
+
 res=res[['Gene','Chromosome','geneBP','Q','RsquaredMRJones','Pratt']]
 res=res[res['Q']>(norm.ppf(args.hornetSignifPThres)**2)]
 if res.shape[0]==0:
@@ -159,11 +161,12 @@ if doprint:
 fpout=os.path.abspath(args.out)+'.csv'
 pdf.to_csv(fpout,index=False)
 print('\n Novel genes are saved to {}'.format(fpout))
-# remove stuff I wrote out
-cmd=[callDelete(),os.path.abspath(os.getcwd())+'/a.log']
-out=subprocess.call(cmd,stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT) # executing the command in the terminal
-cmd=[callDelete(),os.path.abspath(os.getcwd())+'/a.clumped']
-out=subprocess.call(cmd,stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT) # executing the command in the terminal
-if args.phenoP=='missing':
-    cmd=[callDelete(),os.path.abspath(os.getcwd())+'/a.txt']
+# remove stuff I wrote out if on linux/mac
+if platform.system()!='Windows':
+    cmd=[callDelete(),os.path.abspath(os.getcwd())+'/a.log']
     out=subprocess.call(cmd,stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT) # executing the command in the terminal
+    cmd=[callDelete(),os.path.abspath(os.getcwd())+'/a.clumped']
+    out=subprocess.call(cmd,stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT) # executing the command in the terminal
+    if args.phenoP=='missing':
+        cmd=[callDelete(),os.path.abspath(os.getcwd())+'/a.txt']
+        out=subprocess.call(cmd,stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT) # executing the command in the terminal

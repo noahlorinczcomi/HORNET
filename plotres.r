@@ -17,7 +17,8 @@ source("modCMplot.r") # also using CMplot
 ############################################################################################################################################
 pat=normalizePath('res.csv')
 if(!file.exists(pat)) stop('A file named res.csv of HORNET results is expected to be in the HORNET/ directory. This file is automatically saved when you use hornet.py, so it got deleted somewhow. You can copy any of your results files into the HORNET/ directory, rename the copy as res.csv, then run this program.')
-data=read.csv(pat,sep='\t');
+data=read.csv(pat);
+if(ncol(data)==1) data=read.csv(pat,sep='\t')
 data=as.data.frame(data)
 if(all.equal(data[,1],data[,2])) data=data[,-2]
 data$Gene=sapply(data$Gene,function(h) unlist(strsplit(h,'[.]'))[1])
@@ -116,10 +117,11 @@ if(nrow(vdf)==0) {
     #geom_hline(yintercept=prattcut) +
     #geom_hline(yintercept=0) +
     guides(shape='none',color='none',size='none') +
-    theme(legend.position='bottom',legend.text=element_text(size=11)) +
+    theme(legend.position='bottom',legend.text=element_text(size=11),
+      axis.title=element_text(size=12)) +
     labs(x='Z-statistic for causal estimate',y='Pratt index') +
     geom_point() +
-    geom_text_repel(aes(label=genelabel),data=vdf[vdf$shapevar==2,],size=2,angle=45,color='black',force=10,ylim=c(0.2,1)) +
+    geom_text_repel(aes(label=genelabel),data=vdf[vdf$shapevar==2,],size=3,angle=0,color='black',force=10,ylim=c(0.2,1)) +
     scale_y_continuous(breaks=seq(0,1,0.2),labels=seq(0,1,0.2),limits=c(-0.05,1))
 
   suppressWarnings(ggsave('volcano.png',mp,width=8,height=6))
@@ -128,10 +130,10 @@ cat(mess)
 ############################################################################################################################################
 # clean up
 ############################################################################################################################################
-sys=Sys.info()['sysname']
-delo=ifelse(sys %in% c('Darwin','Linux'), 'rm', 'del')
-setwd('..') # was in plots/, need to back up to HORNET/ where res.csv is stored
-oo=system(paste0(delo,' ','res.csv'),intern=TRUE)
+#sys=Sys.info()['sysname']
+#delo=ifelse(sys %in% c('Darwin','Linux'), 'rm', 'del')
+#setwd('..') # was in plots/, need to back up to HORNET/ where res.csv is stored
+#oo=system(paste0(delo,' ','res.csv'),intern=TRUE)
 
 
 
