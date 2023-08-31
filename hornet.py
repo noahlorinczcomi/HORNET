@@ -238,7 +238,7 @@ for _ in range(0, len(os.listdir(dirGene))):
 
 # if no chromosomes could be analyzed, there is nothing to save - tell the user and exit
 if runningres.shape[0]==0:
-    raise ValueError('\n\n Not genes could be analyzed in these data.\n Consider adjusting your criteria for forming gene groups, IV sets, etc., or the data itself\nas the cause of this result\n\n')
+    raise ValueError('\n\n No genes could be analyzed in these data.\n Consider adjusting your criteria for forming \ngene groups, IV sets, etc., or the data itself\nas the cause of this result\n\n')
 
 fp1=os.path.abspath(args.out)+'_results.txt'
 fp2=os.path.abspath(args.out)+'_diagnostics.txt'
