@@ -66,7 +66,7 @@ This tutorial will use the command line to perform analyses with HORNET. We stil
 ## Data
 We want to perform genome-wide searches for genes with evidence of causality with a phenotype when they are expressed in a particular tissue. (You can test multiple tissues separately using HORNET multiple times). This means that need eQTL GWAS summary statistics that contain estimates of association between SNPs and the expression of all genes within some Mb window of them (usually +-1Mb). Since the scale of these data can be enormous when combined across the entire measurable genome, one file for each chromosome should exist in a folder. Nothing else should exist in this folder.
 
-For this tutorial, we have already downloaded GWAS summary data for Alzheimer's disease (AD) from [Jansen et al. (2019)](https://doi.org/10.1038/s41588-018-0311-9) and gene expression data in cortex tissue from [MetaBrain](https://www.metabrain.nl/)  and in thyroid tissue from the [GTEx Consortium](https://gtexportal.org/home/) for chromsomes 6 and 17. *Note*, you can remove these data sets from the `HORNET/data/testdata/` directory to save space after completing this tutorial.
+For this tutorial, we have already downloaded GWAS summary data for Alzheimer's disease (AD) from [Jansen et al. (2019)](https://doi.org/10.1038/s41588-018-0311-9) and gene expression data in cortex tissue from [MetaBrain](https://www.metabrain.nl/)  and in thyroid tissue from the [GTEx Consortium](https://gtexportal.org/home/) for chromosomes 6 and 17. *Note*, you can remove these data sets from the `HORNET/data/testdata/` directory to save space after completing this tutorial.
 
 Gene expression GWAS data are stored in the `HORNET/data/testdata/` directory under the names `MetaBrain/MetaBrain_cortex_chr<6,17>.txt.gz` and `GTEx/GTEx_v8_thyroid_chr<6,17>.parquet.gz`, where data sets from these two sources are placed into separate folders for reasons that will become apparent later.
 
@@ -98,7 +98,6 @@ python hornet.py \
  --MVMRIVPThreshold 5e-3 \
  --networkR2Thres 0.1 \
  --geneGroupPvalueThreshold 1e-3 \
- 
  --out results/AD_cortex
 ```
 
@@ -126,7 +125,6 @@ python hornet.py \
  --MVMRIVPThreshold 5e-3 \
  --networkR2Thres 0.1 \
  --geneGroupPvalueThreshold 1e-3 \
- --
  --out results/AD_thyroid
 ```
 
@@ -141,7 +139,7 @@ python hornet.py --help
 
 # HORNET Results
 ## Causal estimates and network graphs
-**Assume we ran the above command for GTEx data**. 
+**Assume we ran the above command for MetaBrain data from cortex tissue**. 
 
 We gave the `--out` flag the value `results/AD_cortex`, which is the prefix of a file name in the `results/` folder. This will give us the following results:
 1. `HORNET/results/AD_cortex_results.txt`
