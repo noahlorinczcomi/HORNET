@@ -718,46 +718,60 @@ def bimin(mat):
     return numpy.where(mat==mat.min())
 
 # Gene selector (my alternative to MR-Jones)
-def admmHuber(bx,by,SigmaUU,gamma,lam,rho=1,eps=1e-4,max_iter=50):
+def admmHuber(bx,by,SigmaUU,gamma,lam,rho=1,eps=1e-2,max_iter=15):
     # this function expects bx and by to already be transformed out of LD
     m=bx.shape[0];p=bx.shape[1]
-    thetaT,v0,w0=MRBEEHuber(bx,by,numpy.eye(m),UU,UV,gamma=gamma,initial="bee",eps=eps,max_iter=max_iter,boot=False)
+    UV=numpy.zeros((p,1))
+    thetaT,v0,w0=MRBEEHuber(bx,by,numpy.eye(m),SigmaUU,UV,gamma=gamma,initial="bee",eps=eps,max_iter=max_iter,boot=False)
+    w0=w0/numpy.max(w0)
     D=numpy.diag(w0.squeeze())
     adj=sum(w0.squeeze())
-    I=numpy.diag(p)
+    I=numpy.eye(p)
     epsie=[1];k=0
-    muT=numpy.ones((p,)) # fixed start
+    muT=numpy.zeros((p,)) # fixed start
     ts=numpy.zeros((max_iter,p))
-    ws=numpy.zeros((max_iter,p))
+    ws=numpy.zeros((max_iter,m))
     while (epsie[-1]>eps) & (k<max_iter):
         k=k+1
         BTB=bx.T@D@bx+rho*I-adj*SigmaUU
-        BTa=bx.T@D@bx-muT
-        betaTp1=numpy.linalg.inv(BTB@BTa)
-        thetaTp1=scad(betaTp1+muT/rho,lam/rho)
+        BTa=bx.T@D@by-muT
+        betaTp1=numpy.linalg.inv(BTB)@BTa
+        thetaTp1=scad(betaTp1+muT/rho,lam/rho,3.7)
         muTp1=muT+rho*(betaTp1-thetaTp1)
         oops=numpy.sum((betaTp1-thetaTp1)**2)
         epsie.append(oops)
         thetaT=thetaTp1
-        muT=mutp1
-        res=by.squeeze()-bx@thetaT.squeeze()
-        w0=huberWeight(res,gamma); D=numpy.diag(w0.squeeze()); adj=numpy.sum(w0.squeeze())
-        ts[k,:]=thetaT.squeeze() # storing all thetas
-        ws[k,:]=w0.squeeze() # and weights
+        muT=muTp1
+        res=by.squeeze()-bx@(thetaT.squeeze())
+        w0=huberWeight(res,gamma); w0=w0/numpy.max(w0)
+        D=numpy.diag(w0.squeeze()); adj=numpy.sum(w0.squeeze())
+        ts[k-1,:]=thetaT.squeeze() # storing all thetas
+        ws[k-1,:]=w0.squeeze() # and weights
     if k==max_iter: # if didn't converge
-        ind=epsie.index(min(epsie))
-        thetaT=ts[ind,:] # find most stable estimates
-        w0=ws[ind,:] # and weights
-    thetaT,w0
+        ind=epsie.index(numpy.min(epsie))
+        thetaT=ts[ind-1,:] # find most stable estimates
+        w0=ws[ind-1,:] # and weights
+    return thetaT,w0
 
 
-def gscreen(bx,by,SigmaUU,gamma,lamvec=numpy.linspace(0,1.5,15),eps=1e-4,max_iter=50):
+def gscreen(bx,by,SigmaUU,gamma,lamvec=numpy.linspace(0.01,1.5,15),rho=1,eps=1e-2,max_iter=15):
     # this function expects bx and by to already be transformed out of LD
     m=bx.shape[0];p=bx.shape[1]
-    # init
-    
-    huberWeight(res,gamma)
-
+    bics=[]
+    for ll in lamvec:
+        thetaT,w0=admmHuber(bx,by,SigmaUU,gamma=gamma,lam=ll,rho=rho,eps=eps,max_iter=max_iter)
+        w0=w0/numpy.max(w0)
+        adj=numpy.sum(w0)
+        res=by.squeeze()-bx@thetaT
+        rss=sum((w0*res)**2)
+        df2=numpy.sum(thetaT!=0)
+        toadd=adj/m*numpy.log(rss/m)-numpy.log(adj)*m*df2
+        #toadd=adj*numpy.log(rss)+(numpy.log(m-adj)+numpy.log(p))*df2
+        bics.append(toadd)
+    ind=bics.index(numpy.min(bics))
+    # refit
+    thetaT,w0=admmHuber(bx,by,SigmaUU,gamma=gamma,lam=lamvec[ind],rho=rho,eps=eps,max_iter=max_iter)
+    return thetaT,w0,bics[ind]
 
 # search the BIC grid outputted by MR Jones and find optimal lambda1 and lambda2 (tau)
 # def BICgridSearch(MRJonesOut,lamvec,tauvec):
