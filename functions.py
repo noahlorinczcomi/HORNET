@@ -473,94 +473,7 @@ def soft(a,b):
     c[mask]=0
     return c*numpy.sign(a)
 
-### old MR Jones
-# def MRJones(bX,by,Theta,UU,UV,lamvec,tauvec,rho_theta=1,rho_delta=1,max_iter=20,max_eps=0.01,alpha=0):
-#     # Theta: solve(R) where R is LD matrix
-#     p=bX.shape[1]; n=bX.shape[0]
-#     BTB=bX.T@Theta@bX
-#     BTa=bX.T@Theta@by
-#     BT=bX.T@Theta
-#     Ta=Theta@by
-#     TB=Theta@bX
-#     Trhoinv=numpy.linalg.inv(Theta+rho_delta*numpy.eye(n)) # may be able to make faster, but not that slow already
-#     TITa=Trhoinv@Ta
-#     TITB=Trhoinv@TB
-#     TC=numpy.linalg.cholesky(Theta).T
-#     # byse=TC@byse.copy()
-#     # bXse=TC@bXse.copy()
-#     Suu=n*UU.copy()
-#     Suv=n*UV.copy()
-#     theta_ini=(numpy.linalg.inv(BTB-Suu)@(BTa-Suv)).reshape((p,1))
-#     mask=abs(theta_ini)<0.001
-#     theta_ini[mask]=0
-#     delta_ini=by-bX@theta_ini
-#     mad_delta=mad(delta_ini)
-#     mask=abs(delta_ini)<(mad_delta*3)
-#     delta_ini[mask]=0
-    
-#     Btheta=numpy.zeros((p,len(lamvec),len(tauvec)))
-#     Bdelta=numpy.zeros((n,len(lamvec),len(tauvec)))
-#     Bbic=numpy.zeros((len(lamvec),len(tauvec)))
-#     for ss in range(0,len(lamvec)):
-#         for sss in range(0,len(tauvec)):
-#             theta=theta_ini.copy()
-#             theta1=theta.copy(); mask1=abs(theta1)<lamvec[ss]; theta1[mask1]=0
-#             delta=delta_ini.copy()
-#             delta1=delta.copy(); mask2=abs(delta1)<tauvec[sss]; delta1[mask2]=0
-#             u1=rho_theta*(theta-theta1)
-#             u2=rho_delta*(delta-delta1)
-#             # normtheta=sum(theta**2)**0.5
-#             normtheta=numpy.linalg.norm(theta,ord=2)
-#             theta2=theta1.copy()*0
-#             error=1; errors=[]
-#             iter_=1
-#             while (error>max_eps) & (iter_<max_iter):
-#                 theta2=theta1.copy()
-#                 adjratio=numpy.sum(delta1==0)/n
-#                 Hinv=numpy.linalg.inv(BTB-Suu*adjratio+(rho_theta+alpha*lamvec[ss])*makeI(p))
-#                 theta=Hinv@(BTa-BT@delta-Suv*adjratio-(u1-rho_theta*theta1))
-#                 weight1=dSCAD(theta,lamvec[ss]).reshape((p,1))
-#                 theta1=soft(theta+u1/rho_theta,weight1/rho_theta)
-#                 delta=TITa-TITB@theta-Trhoinv@(u2-rho_delta*delta1)
-#                 weight2=dSCAD(delta,tauvec[sss],gamma=2.2).reshape((n,1))
-#                 delta1=soft(delta+u2/rho_delta,weight2/rho_delta)
-#                 u1=u1.copy()+rho_theta*(theta-theta1)
-#                 u2=u2.copy()+rho_delta*(delta-delta1)
-#                 iter_=iter_+1
-#                 if iter_>3:
-#                     if normtheta<=0: # sometimes normtheta can be 0 (consider if all coefficients are shrunken to 0)
-#                         error=max_eps+1
-#                         errors.append(error)
-#                     else:
-#                         error=numpy.linalg.norm(theta2-theta1,ord=2)/normtheta
-#                         # error=((theta2.T@theta1)**0.5)/normtheta
-#                         errors.append(error)
-#             mask1=(theta1!=0)
-#             mask2=(delta1!=0)
-#             theta1[mask1]=theta[mask1]
-#             delta1[mask2]=delta[mask2]
-#             Btheta[:,ss,sss]=theta1.reshape((p,))
-#             Bdelta[:,ss,sss]=delta1.reshape((n,))
-#             residual=by-bX@theta1-delta1
-#             # indtheta=(theta1!=0); indtheta=indtheta.reshape((indtheta.shape[0],))
-#             # LinSm=BTB[indtheta,:][:,indtheta]-Suu[indtheta,:][:,indtheta]*adjratio+alpha*lamvec[ss]*makeI(sum(indtheta));
-#             # LinSm=numpy.linalg.inv(LinSm)@(BTB[indtheta,:][:,indtheta]-Suu[indtheta,:][:,indtheta]*adjratio)
-#             # df1=sum(numpy.diag(LinSm))
-#             df1=numpy.sum(theta1!=0) # generally gives the same results as using df1 above, especially since lambda is usually taken to be extremely small
-#             df2=numpy.sum(delta1!=0)
-#             rss=TC@residual; rss=rss.reshape((rss.shape[0],1))
-#             if (n-df1-df2)<1:
-#                 Bbic[ss,sss]=math.inf
-#             else:
-#                 sig=(rss.T@rss)/(n-df1-df2)
-#                 Bbic[ss,sss]=n*numpy.log(sig)+numpy.log(n)*(df1+df2)
-#     A={}
-#     A['thetamatrix']=Btheta
-#     A['deltamatrix']=Bdelta
-#     A['bic']=Bbic
-#     return A
-
-### new MR Jones
+# MR Jones
 def MRJones(by,bX,LD,Rxx,rxy,lamvec=numpy.linspace(0.05,0.3,10),tauvec=numpy.linspace(5,25,10),rho_theta=1,rho_gamma=1,max_iter=30,max_eps=0.005,intercept=True,WIB=True,WIB_thres=5,bicfactor=1,normmax=3):
     warnings.filterwarnings('ignore')
     n=len(by.squeeze());
@@ -720,10 +633,10 @@ def bimin(mat):
 # Gene selector (my alternative to MR-Jones)
 def admmHuber(bx,by,SigmaUU,gamma,lam,rho=1,eps=1e-2,max_iter=15):
     # this function expects bx and by to already be transformed out of LD
-    m=bx.shape[0];p=bx.shape[1]
+    m=bx.shape[0];p=bx.shape[1]; by=by.squeeze()
     UV=numpy.zeros((p,1))
     thetaT,v0,w0=MRBEEHuber(bx,by,numpy.eye(m),SigmaUU,UV,gamma=gamma,initial="bee",eps=eps,max_iter=max_iter,boot=False)
-    w0=w0/numpy.max(w0)
+    #w0=w0/numpy.max(w0)
     D=numpy.diag(w0.squeeze())
     adj=sum(w0.squeeze())
     I=numpy.eye(p)
@@ -736,17 +649,19 @@ def admmHuber(bx,by,SigmaUU,gamma,lam,rho=1,eps=1e-2,max_iter=15):
         BTB=bx.T@D@bx+rho*I-adj*SigmaUU
         BTa=bx.T@D@by-muT
         betaTp1=numpy.linalg.inv(BTB)@BTa
+        betaTp1=betaTp1.reshape(p,)
         thetaTp1=scad(betaTp1+muT/rho,lam/rho,3.7)
         muTp1=muT+rho*(betaTp1-thetaTp1)
         oops=numpy.sum((betaTp1-thetaTp1)**2)
         epsie.append(oops)
-        thetaT=thetaTp1
+        thetaT=thetaTp1.reshape(p,)
         muT=muTp1
-        res=by.squeeze()-bx@(thetaT.squeeze())
-        w0=huberWeight(res,gamma); w0=w0/numpy.max(w0)
-        D=numpy.diag(w0.squeeze()); adj=numpy.sum(w0.squeeze())
-        ts[k-1,:]=thetaT.squeeze() # storing all thetas
-        ws[k-1,:]=w0.squeeze() # and weights
+        res=by.squeeze()-bx@(thetaT.reshape(p,))
+        w0=huberWeight(res,gamma); #w0=w0/numpy.max(w0)
+        w0=w0.reshape(m,)
+        D=numpy.diag(w0); adj=numpy.sum(w0)
+        ts[k-1,:]=thetaT # storing all thetas
+        ws[k-1,:]=w0 # and weights
     if k==max_iter: # if didn't converge
         ind=epsie.index(numpy.min(epsie))
         thetaT=ts[ind-1,:] # find most stable estimates
@@ -755,70 +670,31 @@ def admmHuber(bx,by,SigmaUU,gamma,lam,rho=1,eps=1e-2,max_iter=15):
 
 
 def gscreen(bx,by,SigmaUU,gamma,lamvec=numpy.linspace(0.01,1.5,15),rho=1,eps=1e-2,max_iter=15):
+    if numpy.all(bx[:,0]==1):
+        bx=bx[:,1:]
+        SigmaUU=SigmaUU[:,1:][1:,:]
     # this function expects bx and by to already be transformed out of LD
     m=bx.shape[0];p=bx.shape[1]
     bics=[]
     for ll in lamvec:
         thetaT,w0=admmHuber(bx,by,SigmaUU,gamma=gamma,lam=ll,rho=rho,eps=eps,max_iter=max_iter)
-        w0=w0/numpy.max(w0)
+        w0=w0.squeeze()
+        #w0=w0/numpy.max(w0)
         adj=numpy.sum(w0)
-        res=by.squeeze()-bx@thetaT
-        rss=sum((w0*res)**2)
+        res=by.squeeze()-bx@(thetaT.reshape(p,))
+        rss=numpy.sum((w0*res)**2)
         df2=numpy.sum(thetaT!=0)
+        if df2==0:
+            break
         toadd=adj/m*numpy.log(rss/m)-numpy.log(adj)*m*df2
         #toadd=adj*numpy.log(rss)+(numpy.log(m-adj)+numpy.log(p))*df2
         bics.append(toadd)
-    ind=bics.index(numpy.min(bics))
-    # refit
-    thetaT,w0=admmHuber(bx,by,SigmaUU,gamma=gamma,lam=lamvec[ind],rho=rho,eps=eps,max_iter=max_iter)
-    return thetaT,w0,bics[ind]
-
-# search the BIC grid outputted by MR Jones and find optimal lambda1 and lambda2 (tau)
-# def BICgridSearch(MRJonesOut,lamvec,tauvec):
-#     # lambda2/tau (for pleiotropy) is in columns; lambda1 (for causal effects) is in rows
-#     lamvec=lamvec.reshape((lamvec.shape[0],))
-#     tauvec=tauvec.reshape((tauvec.shape[0],))
-#     BICgrid=MRJonesOut['bic']
-#     EstsGrid=MRJonesOut['thetamatrix']
-#     PleioGrid=MRJonesOut['deltamatrix']
-#     BICgrid=numpy.nan_to_num(BICgrid,nan=math.inf) # make large bc I'm searching for the minimum
-#     inds=numpy.where(BICgrid==BICgrid.min())
-#     i,j=inds[0][0], inds[1][0]
-#     ests=EstsGrid[:,i,j]
-#     deltas=PleioGrid[:,i,j]
-#     isPleio=(deltas!=0)
-#     A={'finalEsts': ests, 'finalDeltas': deltas, 'isPleio': isPleio, 'minLambda1': lamvec[i], 'minLambda2': tauvec[j], 'minBIC': BICgrid[i,j], 'i': i, 'j': j}
-#     return A
-
-# def MRJonesVariance(bX,by,deltas,ldR,UU,UV,finalEsts,isPleio,finalLambda,finalTau,alpha):
-#     # Theta: inverse of LD matrix
-#     # UU: SigmaUU; UV: SigmaUV
-#     # finalEsts: optimized MRJones causal estimates
-#     # isPleio: n-length vector of True/False values indicating if xi_j/gamma_j != 0 (ie is pleio after shrinkage)
-#     # finalLambda: optimal lambda (lambda1) returned by MRJones; finalTau: optimal lambda 2 (for pleio) returned by MRJones
-#     pleiomask=isPleio==False
-#     thetamask=finalEsts!=0
-#     X1=bX[pleiomask,:][:,thetamask]
-#     y=by[pleiomask,:]
-#     ld_=ldR[pleiomask,:][:,pleiomask]
-#     ld_=numpy.linalg.inv(ld_)
-#     UU_=UU[thetamask,:][:,thetamask]
-#     UV_=UV[thetamask,:]; UV_=UV_.reshape((UV_.shape[0],))
-#     m0=sum(pleiomask); p0=sum(thetamask)
-#     H=X1.T@ld_@X1-m0*UU_+alpha*finalLambda*makeI(p0)
-#     H=numpy.linalg.inv(H)
-#     est0=finalEsts[thetamask].reshape((finalEsts[thetamask].shape[0],))
-#     res=y.reshape((y.shape[0],))-X1@est0
-#     ResMat=numpy.zeros((m0,m0))
-#     numpy.fill_diagonal(ResMat, flatten_list(res))
-#     ff=numpy.zeros((m0,p0))
-#     dd=flatten_list([l.tolist() for l in UV_-UU_@est0])
-#     for i in range(0,ff.shape[0]):
-#         ff[i,:]=dd
-#     E=ResMat@X1-ff
-#     V=E.T@ld_@E
-#     VB=H@V@H
-#     return VB
+    if len(bics)>0:
+        ind=numpy.argmin(numpy.array(bics).squeeze())
+        thetaT,w0=admmHuber(bx,by,SigmaUU,gamma=gamma,lam=lamvec[ind],rho=rho,eps=eps,max_iter=max_iter)
+        return thetaT,w0,bics[ind]
+    else:
+        return numpy.linspace(0,0,p), numpy.linspace(1,1,m),0
 
 def CD_BIC(x,y,UU,UV,VV,Rinv,lambda_min,lambda_max,alpha_,nLambda=100,eps=0.00001,max_iter=100,norm_stoppage=100,pen='scad'):
     # x: bx0, y: by, UU: SigmaUU, UV: SigmaUV, VV:SigmaVV, lambda_min/_max: minimum/maximum lambda, alpha_: alpha
@@ -1215,29 +1091,6 @@ def TwoMixtureEM(data,mu01,mu02,sig01,sig02,eps=0.001,k=100):
     gg[mask]=2; gg=gg-1
     return gg
 
-# # testing the mixture
-# n=1000;eps=0.7;mu1=0;mu2=0;sig1=(30000*0.2/100)**0.5;sig2=(1/30000)**0.5 # eps is P(group 1)
-# mu1=0;mu2=1;sig1=1;sig2=1
-# bj=numpy.random.binomial(1,eps,n)
-# x=bj*numpy.random.normal(mu1,sig1,n)+(1-bj)*numpy.random.normal(mu2,sig2,n)
-# mu01=0;mu02=-1;sig01=1;sig02=1
-# bjhat=TwoMixtureEM(x,mu01,mu02,sig01,sig02,eps=0.01,k=100)
-# import pandas
-# df=pandas.DataFrame({'x': bj, 'xhat': bjhat})
-# tt=numpy.array(pandas.crosstab(df['x'],df['xhat']))
-# sum(numpy.diag(tt))/numpy.sum(tt)
-
-# def bootOutcomeH2(x,H0target=x.shape[0],k=1000):
-#     ests=[]
-#     for k_ in range(0,k):
-#         xstar=numpy.random.choice(x,size=x.shape[0],replace=True)
-#         ests.append(sum(xstar**2))
-#     ests=numpy.array(ests)
-#     p_=1-sum(ests>H0target)/k
-#     qs=numpy.quantile(ests,q=[0.05,0.95]) # 10% of data is outside of the range {0.05,0.95}
-#     h2est=by.T@by-by.shape[0]
-#     return h2est, p_, qs
-
 def trace(A):
     out=numpy.sum(numpy.diag(A))
     return out
@@ -1391,9 +1244,9 @@ def adjustInflation(res,infl):
     res2['IVW_UVMR_SE']=res2['IVW_UVMR_SE']*(infl**0.5)
     res2['MRBEE_UVMR_SE']=res2['MRBEE_UVMR_SE']*(infl**0.5)
     res2['MRBEE_MVMR_SE']=res2['MRBEE_MVMR_SE']*(infl**0.5)
-    res2['MRBEERidge_MVMR_SE']=res2['MRBEERidge_MVMR_SE']*(infl**0.5)
+    #res2['MRBEERidge_MVMR_SE']=res2['MRBEERidge_MVMR_SE']*(infl**0.5)
     res2['MRBEEPostSelec_MVMR_SE']=res2['MRBEEPostSelec_MVMR_SE']*(infl**0.5)
-    res2['MRBEEHuber_MVMR_SE']=res2['MRBEEHuber_MVMR_SE']*(infl**0.5)
+    #res2['MRBEEHuber_MVMR_SE']=res2['MRBEEHuber_MVMR_SE']*(infl**0.5)
     return res2
 
 def callDelete():
@@ -1486,8 +1339,8 @@ def rsidFinder(st):
     return out
 
 def prepRes(res):
-    res=res[['Gene','geneBP','Est','MRBEEPosSelEst','MRBEEPosSelSE','MRJonesR2','geneZ','geneSNP','snpBP','conditionalF','groupID','CHR','infl','h2CisEstNaive','nClumps','SingleSNPEst','SingleSNP_P','IVW_MVMR_Est','IVW_MVMR_SE','IVW_UNIMR_Est','IVW_UNIMR_SE','UniMRBEEEsts','UniMRBEESEs','MRBEEEsts','MRBEESEs','MRBEERidgeEst','MRBEERidgeSE','MRBEEHuberEst','MRBEEHuberSE','SMRm','SMRpleioJointPs','SMRHPmeansP','OVBiasTestP']]
-    res=res.rename(columns={'Est': 'MRJonesEst', 'MRJonesR2':'RsquaredMRJones','geneZ': 'LeadEQTLZstatistic','geneSNP':'leadEQTL','snpBP':'leadEQTLBP','groupID':'CHRspecificGroupID','CHR':'Chromosome','infl':'nullInflation','IVW_UNIMR_Est':'IVW_UVMR_Est','IVW_UNIMR_SE':'IVW_UVMR_SE','UniMRBEEEsts':'MRBEE_UVMR_Est','UniMRBEESEs':'MRBEE_UVMR_SE','MRBEEEsts':'MRBEE_MVMR_Est','MRBEESEs':'MRBEE_MVMR_SE','MRBEERidgeEst':'MRBEERidge_MVMR_Est','MRBEERidgeSE':'MRBEERidge_MVMR_SE','MRBEEHuberEst':'MRBEEHuber_MVMR_Est','MRBEEHuberSE':'MRBEEHuber_MVMR_SE','MRBEEPosSelEst':'MRBEEPostSelec_MVMR_Est','MRBEEPosSelSE':'MRBEEPostSelec_MVMR_SE','SMRm':'SMRNumIVs','SMRHPmeansP':'SMRUnbalancedHP_P','OVBiasTestP':'SMROVBias_P'})
+    res=res[['Gene','geneBP','GeneSelected','MRBEEPosSelEst','MRBEEPosSelSE','LocusR2','geneZ','geneSNP','snpBP','conditionalF','groupID','CHR','infl','h2CisEstNaive','nClumps','SingleSNPEst','SingleSNP_P','IVW_MVMR_Est','IVW_MVMR_SE','IVW_UNIMR_Est','IVW_UNIMR_SE','UniMRBEEEsts','UniMRBEESEs','MRBEEEsts','MRBEESEs','SMRm','SMRpleioJointPs','SMRHPmeansP','OVBiasTestP']]
+    res=res.rename(columns={'geneZ': 'LeadEQTLZstatistic','geneSNP':'leadEQTL','snpBP':'leadEQTLBP','groupID':'CHRspecificGroupID','CHR':'Chromosome','infl':'nullInflation','IVW_UNIMR_Est':'IVW_UVMR_Est','IVW_UNIMR_SE':'IVW_UVMR_SE','UniMRBEEEsts':'MRBEE_UVMR_Est','UniMRBEESEs':'MRBEE_UVMR_SE','MRBEEEsts':'MRBEE_MVMR_Est','MRBEESEs':'MRBEE_MVMR_SE','MRBEEPosSelEst':'MRBEEPostSelec_MVMR_Est','MRBEEPosSelSE':'MRBEEPostSelec_MVMR_SE','SMRm':'SMRNumIVs','SMRHPmeansP':'SMRUnbalancedHP_P','OVBiasTestP':'SMROVBias_P'})
     return res
 
 # function to load exposure data and merge with outcome data (separated from outcome data bc many exposure files will be loaded)
@@ -1710,7 +1563,8 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
                   analysisOnlyInOutcomeLoci=True,outcomeLociMbWindow=1,ldUpperLimit=0.5,
                   ldOtherLociOtherPt=0.0001,ldOtherLociR2=0.1,ldOtherLociWindow=1,q0Correls=3.290527,nMinCorrels=50,
                   jointChiGenesP=5e-8,opAlpha='dynamic',nMinIVs=50,hessMinScale=5,silence=False,
-                  UniMRIVPThreshold=1e-8,candidateGenes='',assumeNoSampleOverlap=True,shrinkBiasCorrection=True,networkR2Thres=0.25,impute=True,saveData=False):
+                  UniMRIVPThreshold=1e-8,candidateGenes='',assumeNoSampleOverlap=True,shrinkBiasCorrection=True,networkR2Thres=0.25,impute=True,saveData=False,
+                  geneSelector='mrjones'):
     # ldOtherLociOtherPt: only SNPs with P<this threshold will be considered when removing SNPs in IV set that are in LD with SNPs outside of the LD set
     # making sure the user hasn't passed anything crazy for ldOtherLociWindow
     if (ldOtherLociWindow>10) & (silence==False):
@@ -1983,7 +1837,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         ########################################## (yes I am doing this for a second time - works well in both cases)
         # remove genes with norm(newX[:,j],2)^2<5m
         toKeep=(numpy.diag(bx.T@bx)>(hessMinScale*bx.shape[0]/2)) # can change factor if you want; default is hessMinScale=5
-        if sum(toKeep)==0:
+        if sum(toKeep)<2: # if less than 2 genes available
             continue
         
         bx=bx[:,toKeep]; bx0=bx0[:,toKeep]
@@ -2026,7 +1880,6 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         if shrinkBiasCorrection:
             UU=UU*0.5; UU_=UU_*0.5
             UV=UV*0.5; UV_=UV_*0.5
-        
         if (opAlpha=="dynamic") & (bx.shape[0]>10):
             c_c=numpy.corrcoef(bx,rowvar=False); numpy.fill_diagonal(c_c.reshape((p,p)), 0)
             opAlphaVal=float(numpy.max(abs(c_c)))
@@ -2034,22 +1887,23 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
             opAlphaVal=opAlpha
         else:
             opAlphaVal=0
-        
-        thingsToMonitor['MRJonesAlpha']=opAlphaVal
         ## first defining hyperparameter lambda1, lambda2/tau grids
-        # multiple lambda vectors
-        lamvec=numpy.linspace(0.01,1,40)
-        t1=numpy.linspace(0.01,1/2,10)
-        t2=numpy.linspace(1,3,10)
-        t3=numpy.linspace(5,10,10)
-        t4=numpy.linspace(20,40,20)
-        tauvec=numpy.concatenate((t1,t2,t3,t4))
+        # does the user want to use MR-Jones or G-Screen to perform gene selection?
+        lamvec=numpy.linspace(0.01,3/4,20)
+        if geneSelector=='mrjones':
+            t1=numpy.linspace(0.01,1/2,10);t2=numpy.linspace(1,3,10); t3=numpy.linspace(5,10,10); t4=numpy.linspace(20,40,20)
+            tauvec=numpy.concatenate((t1,t2,t3,t4))
+            out=MRJones(by0,bx0_,ld0og,UU_,UV_,lamvec=lamvec,tauvec=tauvec,rho_theta=3/2)
+            deltas=out['gamma']
+            finalEsts=out['theta']
+            thingsToMonitor['propNonzeroDeltas']=sum(deltas!=0)/m
+        else: # G-screen
+            gam=mad(by.squeeze())*(by.shape[1]**0.5)
+            finalEsts,w0,bic=gscreen(bx,by,UU,gamma=mad(by.squeeze())*2,lamvec=lamvec,rho=3/2,eps=1e-2,max_iter=15)
+            thingsToMonitor['propNonzeroDeltas']=1-sum(w0)/m
+            finalEsts=finalEsts.reshape(bx.shape[1],)
+            finalEsts=numpy.concatenate([[0],finalEsts]) # needs an intercept, which I forced to 0 in the gscreen() function
         n=reshaped['geneN'].values; n=numpy.nanmedian(n)
-        ### if you want to fix alpha at a certain value to make it faster
-        out=MRJones(by0,bx0_,ld0og,UU_,UV_,lamvec=lamvec,tauvec=tauvec,rho_theta=3/2)
-        # out=MRJones(by,bx,ld0,UU,UV,lamvec=lamvec,tauvec=tauvec)
-        deltas=out['gamma']
-        finalEsts=out['theta']; 
         # variance explained
         if all(finalEsts==0):
             r2mr=0
@@ -2059,33 +1913,11 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
                 r2mr=0
             else:
                 r2mr=numpy.corrcoef(em,rowvar=False)[0,1]**2
-        estsVars=out['covg']; estsVars=estsVars.reshape((estsVars.shape[0],estsVars.shape[0]))
-        # The MRJones() function already drops the intercept-relevant term from the variance-covariance matrix
         finalEsts=finalEsts[1:]
-        estDf=pandas.DataFrame.from_dict({'gg': numpy.array(cn), 'Est': finalEsts})
-        thingsToMonitor['nNonzeroMRJonesDeltas']=sum(deltas!=0)
-        # if all(deltas!=0):
-        #     continue
-        # intercept terms not included in new MRJones function
-        # isNotZero=(finalEsts!=0) # finding which genes we need a variance estimate for (ie non-shrunken-to-0 ones)
-        # don't even consider MR-Jones SEs - we rely on post selection later anyway
-        paraDf=estDf.copy()
-        paraDf['SE']=math.inf
-        # SEs=(numpy.diag(estsVars)**0.5).squeeze()
-        # # if all estimates shrunken to 0
-        # if len(SEs)==0:
-        #     seDf=estDf.copy(); seDf=seDf.rename(columns={'Est': 'SE'}); seDf['SE']=math.inf
-        # elif all(finalEsts==0): # MRJones will return all SEs as 0s for all genes, evenif coefficients are 0
-        #     seDf=pandas.DataFrame.from_dict({'gg': numpy.array(cn), 'SE': numpy.ones((len(cn),))*float('nan')})
-        # else:
-        #     seDf=pandas.DataFrame.from_dict({'gg': numpy.array(cn)[isNotZero], 'SE': SEs})
-        
-        # paraDf=pandas.merge(estDf,seDf,how='outer',left_on='gg', right_on='gg')
-        # paraDf['SE']=paraDf['SE'].fillna(math.inf)
+        paraDf=pandas.DataFrame.from_dict({'gg': numpy.array(cn), 'GeneSelected': finalEsts!=0})
         # add lead SNPs for each gene to use in later plotting
         leadGeneSNPDf['Gene']=leadGeneSNPDf['Gene']+'_Z' # for merging
         paraDf=pandas.merge(paraDf,leadGeneSNPDf,left_on='gg',right_on='Gene') # merge
-        Ps=[2*norm.cdf(-abs(paraDf['Est'].values[x]/paraDf['SE'].values[x]),0,1) if paraDf['SE'].values[x]>0 else 1 for x in range(0,paraDf.shape[0])]
         # conditional F-statistics (MRJones recommended for this; lamvec determined automatically from within the function)
         if bx.shape[1]<2:
             condFs=float('nan')
@@ -2098,7 +1930,6 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
             mask=cn_[_]==geneLocs['Gene'].values
             ta=geneLocs[mask]['geneBP'].values
             gl.append(float(ta))
-        
         # finally, perform analysis using MVMR and uni MR with MR-Egger (this is equivalent to SMR and the Porcu et al methods)
         ivwout=IVW(bx,by,sparsePrecision,newX,uniIVPThreshold=1e-5) # only IVs with P<uniIVPThreshold will be considered in univariable MR
         ivwout['gg']=cn # cn is the order of genes in paraDf (check: [cn[x]==paraDf['gg'].values[x] for x in range(0,len(cn))])
@@ -2111,16 +1942,10 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         # approximate bias in using SMR
         smrbias=perGeneSMRBias(bx,by,ld0,sparsePrecision,newX,UU,UV,cn_,IVPThresh=UniMRIVPThreshold,r2Thresh=0.25,minNIVs=5)
         paraDf=pandas.merge(paraDf,smrbias,left_on='Gene',right_on='gene')
-        # MRBEE with ridge
-        mrbeeRidge=MRBEERidge(bx,by,UU,UV,VV,sparsePrecision,nLambda=20)
-        ridgeDf=pandas.DataFrame({'Gene': cn_, 'MRBEERidgeEst': mrbeeRidge[0].squeeze(), 'MRBEERidgeSE': (numpy.diag(mrbeeRidge[1])**0.5).squeeze()})
-        paraDf=pandas.merge(paraDf,ridgeDf,left_on='Gene',right_on='Gene')
-        # MRBEE with Huber loss
-        gam=sum((by.squeeze()-numpy.median(by.squeeze()))**2)/by.shape[0]/2
-        huberE,huberV,huberW=MRBEEHuber(bx,by,ld0,UU,UV,gamma=gam,initial="bee",eps=0.0001*p,max_iter=20,boot=False) # keep gamma small (as gamma->inf, huber->quantile)
-        nim=numpy.ones((p+1,),dtype='bool'); nim[0]=False # non-intercept mask
-        huberdf=pandas.DataFrame({'Gene': cn_,'MRBEEHuberEst': huberE.squeeze()[nim], 'MRBEEHuberSE': ((numpy.diag(huberV)**0.5).squeeze())[nim]})
-        paraDf=pandas.merge(paraDf,huberdf,left_on='Gene',right_on='Gene')
+        # # MRBEE with ridge
+        # mrbeeRidge=MRBEERidge(bx,by,UU,UV,VV,sparsePrecision,nLambda=20)
+        # ridgeDf=pandas.DataFrame({'Gene': cn_, 'MRBEERidgeEst': mrbeeRidge[0].squeeze(), 'MRBEERidgeSE': (numpy.diag(mrbeeRidge[1])**0.5).squeeze()})
+        # paraDf=pandas.merge(paraDf,ridgeDf,left_on='Gene',right_on='Gene')
         ### MRBEE Post-Selection
         mask=finalEsts!=0 # True where gene should be included, False where not
         if sum(mask)==0:
@@ -2137,18 +1962,6 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         singlesnpdf=singleSNP(bx,by,cn_)
         paraDf=pandas.merge(paraDf,singlesnpdf,how='outer',left_on='Gene',right_on='Gene')
         # estimate gene expression heritabilities and numbers of SNPs with nonzero associations with gene expression (from theory)
-        # eps=[sum(abs(bx[:,__])>2) for __ in range(0,bx.shape[1])] # estimates of beta mixture proportions (see next line) (proportions of nonzero true associations with gene exp)
-        # eps=numpy.array(eps)/bx.shape[0]
-        # medn=numpy.median(reshaped['geneN'].values) # median sample size for these genes in this tissue
-        ### this may not be the true eps ... recall I assumed the true effects are not in LD
-        # estimate heritability
-        # ... how to do it?
-        # from theory of the mixture (see Supplement)
-        # from LDSC (approximate ldscores)
-        # ldsc=ldscore(ld0og); ldsc=sparsePrecisionog@ldsc; ldsc=numpy.column_stack(([1]*ldsc.shape[0],ldsc))
-        # hat=(numpy.linalg.inv(ldsc.T@ldsc)@ldsc.T@sparsePrecision@bx)
-        # hat=hat[1,:]
-        # problems with ldsc (estimates outside range {-1,1}
         # basically performing clumping without window size restriction within the SNP set now: for each gene, number of P(Z)<0.05 and independent with other SNPs
         nclumps=[]; r2=0.01 # like r2 in PLINK
         ld0=ld0og.copy() # since all MR calculations are done, resetting LD matrix to be actual LD matrix (ie not identity matrix bc I made a transformation)
@@ -2174,7 +1987,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         cisEstNaive=((numpy.diag(bx.T@bx)-1/medns)/bx.shape[0]-1)*nclumps/medns # medns is the median sample sizes for each gene
         toAdd=pandas.DataFrame({'Gene': cn_, 'nClumps': nclumps, 'h2CisEstNaive': cisEstNaive})
         paraDf=pandas.merge(paraDf,toAdd,left_on='Gene',right_on='Gene')
-        paraDf['MRJonesR2']=r2mr
+        paraDf['LocusR2']=r2mr
         # pretty sure h2 cannot be reliably estimated from the data because bx=bhat*nk/sigk where I do not know sigk and there is evidence that it is not 1.        
         # d1['data']=reshaped # probably don't want to save the data ... will take up a lot of memory
         d1={}
@@ -2328,17 +2141,24 @@ def bootVarWLS(x,y,w,UU,k=1000):
         ests[ii,:]=ei.squeeze()
     return numpy.cov(ests,rowvar=False)
 
+def ispd(x):
+    return numpy.all(numpy.linalg.eigvals(x)>0)
+
 def MRBEEHuber(bx,by,R,UU,UV,gamma=0.5,initial="ivw",eps=0.001,max_iter=15,boot=False):
     m=bx.shape[0];p=bx.shape[1]
-    UU_=numpy.column_stack(([0]*p,UU)); UU_=numpy.row_stack(([0]*(p+1),UU_))
-    UV_=numpy.row_stack((0,UV))
+    # take away intercept
+    by=by-numpy.mean(by)
+    for _ in range(0,bx.shape[1]):
+        bx[:,_]=bx[:,_]-numpy.mean(bx[:,_])
     w,v=numpy.linalg.eig(R); Rinvsqrt=v@numpy.diag(1/w**0.5)@v.T
-    bx_=numpy.column_stack(([1]*m,Rinvsqrt@bx)) # transforming up front
+    bx_=Rinvsqrt@bx # transforming up front
     by_=Rinvsqrt@by # transforming up front
+    if numpy.all(bx[:,0]==0): # if user gave bx with an intercept
+        bx_[:0]=1 # ensure it stays like it should
     if initial=="robust":
         mod=QuantReg(by_,bx_) # includes an intercept
         res=mod.fit(q=0.5)
-        est0=res.params.reshape((p+1,1))
+        est0=res.params.reshape((p,1))
         res0=by_-bx_@est0
     else:
         est0=numpy.linalg.inv(bx_.T@bx_)@bx_.T@by_
@@ -2348,8 +2168,14 @@ def MRBEEHuber(bx,by,R,UU,UV,gamma=0.5,initial="ivw",eps=0.001,max_iter=15,boot=
         k=k+1
         w0=huberWeight(res0,gamma)
         D=numpy.diag(w0.squeeze())
+        #w0=w0/numpy.max(w0)
         adjfactor=sum(w0)
-        estk=numpy.linalg.inv(bx_.T@D@bx_-adjfactor*UU_)@bx_.T@D@by_
+        H=bx_.T@D@bx_-adjfactor*UU
+        kk=0.95
+        while (ispd(H)==False) & (kk>0):
+            kk=kk-0.05
+            UU=UU*kk+(1-kk)*numpy.eye(p)
+        estk=numpy.linalg.inv(bx_.T@D@bx_-adjfactor*UU)@bx_.T@D@by_
         error=(est0-estk).T@(est0-estk)
         est0=estk.copy()
         res0=by_-bx_@est0
@@ -2358,7 +2184,7 @@ def MRBEEHuber(bx,by,R,UU,UV,gamma=0.5,initial="ivw",eps=0.001,max_iter=15,boot=
         varest=bootVarWLS(bx_,by_,w0,UU)
     else:
         s2=sum((w0*res0)**2)/(adjfactor-2) # this may underestimate variance (assumes fixed weights)
-        Hinv=numpy.linalg.inv(bx_.T@D@bx_-adjfactor*UU_)
+        Hinv=numpy.linalg.inv(bx_.T@D@bx_-adjfactor*UU)
         XWX=bx_.T@(D**2)@bx_
         varest=s2*Hinv@XWX.T@Hinv
     return est0,varest,w0

@@ -1,0 +1,6 @@
+git clone https://github.com/noahlorinczcomi/HORNET.git && cd HORNET
+wget -O hornet_data.tar http://hal.case.edu/~njl96/hornet_data.tar.gz
+tar -xvf hornet_data.tar && rm hornet_data.tar example_man_vol_plots.png
+mkdir tempfiles plots results
+pip install -r requirements.txt
+chmod +x ./plinkdir/linux/plink ./plinkdir/mac/plink

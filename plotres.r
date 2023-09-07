@@ -38,23 +38,23 @@ if(isens) {
 ############################################################################################################################################
 # manhattan plots using CMplot (annotated P-values and rsquared)
 ############################################################################################################################################
-mandf=data[,c('Gene','Chromosome','geneBP','RsquaredMRJones','MRBEEPostSelec_MVMR_Est','MRBEEPostSelec_MVMR_SE')]
+mandf=data[,c('Gene','Chromosome','geneBP','LocusR2','MRBEEPostSelec_MVMR_Est','MRBEEPostSelec_MVMR_SE')]
 mandf=na.omit(mandf)
 if(nrow(mandf)==0) {
   mess='Could not create Manhattan plot because of insufficient data available'
 } else {
   mandf$GeneP=1-pchisq((mandf$MRBEEPostSelec_MVMR_Est/mandf$MRBEEPostSelec_MVMR_SE)^2,1)
-  traitdf=mandf[,c('Gene','Chromosome','geneBP','RsquaredMRJones','GeneP')]; colnames(traitdf)[3]='Position'
+  traitdf=mandf[,c('Gene','Chromosome','geneBP','LocusR2','GeneP')]; colnames(traitdf)[3]='Position'
   traitdf$Gene=sapply(traitdf$Gene,function(h) unlist(strsplit(h,'[.]'))[1])
   ### Circular manhattan of MR-Jones R-squared (inner) and gene P-value (outer)
   # actually just rsquared
   thres=0.2
-  topkgenes=traitdf[order(traitdf$RsquaredMRJones,decreasing=TRUE),]
-  topkgenes=topkgenes[topkgenes$RsquaredMRJones>thres,]
+  topkgenes=traitdf[order(traitdf$LocusR2,decreasing=TRUE),]
+  topkgenes=topkgenes[topkgenes$LocusR2>thres,]
   genes=c()
-  uv=unique(topkgenes$RsquaredMRJones)[1:50] # top 50
+  uv=unique(topkgenes$LocusR2)[1:50] # top 50
   for(i in 1:length(uv)) {
-      dv=topkgenes[round(topkgenes$RsquaredMRJones,3)==round(uv[i],3),]
+      dv=topkgenes[round(topkgenes$LocusR2,3)==round(uv[i],3),]
       genes=c(genes,dv$Gene[which.min(dv$GeneP)])
   }
   setwd('plots')
@@ -86,7 +86,7 @@ cat(mess)
 ############################################################################################################################################
 prattcut=0.2
 qcut=qnorm(1-5e-5)
-vdf=data[,c('Gene','Chromosome','geneBP','RsquaredMRJones','MRBEEPostSelec_MVMR_Est','MRBEEPostSelec_MVMR_SE','MRBEE_UVMR_Est')]
+vdf=data[,c('Gene','Chromosome','geneBP','LocusR2','MRBEEPostSelec_MVMR_Est','MRBEEPostSelec_MVMR_SE','MRBEE_UVMR_Est')]
 vdf=na.omit(vdf)
 vdf$Gene=sapply(vdf$Gene,function(h) unlist(strsplit(h,'[.]'))[1])
 vdf$z=vdf$MRBEEPostSelec_MVMR_Est/vdf$MRBEEPostSelec_MVMR_SE

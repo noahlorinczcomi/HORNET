@@ -48,6 +48,7 @@ parser.add_argument('--PvalueThresholdBiasCorrection',action='store',type=float,
 parser.add_argument('--assumeNoSampleOverlap',action='store',type=str,default='yes',help='(Optional) Should it be assumed that the eQTL and disease GWAS do not share any of the same participants? If this assumption should not be made, bias-correction for sample overlap will be made following the methods of Lorincz-Comi & Yang et al. (2023). The default is "yes".')
 parser.add_argument('--minMVMRIVs',action='store',type=int,default=30,help='(Optional) The minimum number of IVs that may be used in multivariable MR with MR-Jones. If less than this threshold are available for the locus, the locus will be skipped. The default is 30.')
 parser.add_argument('--hessMinScale',action='store',type=float,default=2.5,help='(Optional) The signal-to-noise ratio for associations between SNPs and gene expression. Larger values will restrict the analysis to only genes with the strongest signals. Values equal to or less than 1/2 may lead to a Hessian matrix with diagonal elements that are not the correct sign, which is introduced by the MRBEE/MR-Jones correction for weak instruments. Note that the bias-correction term in the Hessian matrix of MR-Jones is automatically multiplied by the factor 1/2. The default is 2.5, corresponding to an effective signal-to-noise ratio of 5.')
+parser.add_argument('--geneScreener',action='store',type=str,default='mrjones',help='(Optional) The tool to use to perform gene selection in the screening step of penalized eQTL-MVMR. The options are "gscreen" for the G-Screen method and "mrjones" for the MR-Jones method. The default is "mrjones"')
 ### post-estimation stuff
 parser.add_argument('--adjustSEsForInflation',action='store',type=str,default='yes',help='(Optional) One of True or False. Should the standard errors of causal effect estimates be adjusted for inflation due to misspecified LD structure? The default is "yes".')
 parser.add_argument('--saveRawData',action='store',type=str,default='false',help='(Optional) One of "true" "yes", "false" or "no" . Should the raw data used in multivariable MR be saved? This includes association estimates with each gene in a group, their standard errors, correspondingly the same for the outcome phenotype, and the estimated LD matrix. NOTE!!! This really only works if you are exploring a single candidate gene/locus')
@@ -85,8 +86,11 @@ if (os.listdir(args.eQTLGWAS))==0:
 # graphoutdir=args.networkGraphsOut+'/' if args.networkGraphsOut!='plots' else os.getcwd()+'/plots/'
 if os.path.isdir(os.path.abspath(args.networkGraphsOut))==False:
     raise ValueError('\n It looks like the directory you want to save network graph plots to does not exist({})'.format(args.networkGraphsOut))
+# check other flags
+if (args.geneScreener in ['gscreen','mrjones'])==False:
+    raise ValueError('the "--geneScreener" flag accepts either "gscreen" or "mrjones", but you gave it {}'.format(args.geneScreener.lower()))
 
-## 
+##
 candidateGenes=args.candidateGenes.split(',') if len(args.candidateGenes)>0 else []
 # drop Ensembl version type if it is present (if it is not, this code will have no effect)
 if len(candidateGenes)>0:
@@ -203,7 +207,8 @@ for _ in range(0, len(os.listdir(dirGene))):
                                                   ldOtherLociWindow=ldOtherLociWindow, q0Correls=q0Correls,nMinCorrels=nMinCorrels,jointChiGenesP=jointChiGenesP,
                                                   opAlpha=opAlpha,nMinIVs=nMinIVs,
                                                   hessMinScale=hessMinScale,silence=silence, UniMRIVPThreshold=UniMRIVPThreshold, candidateGenes=candidateGenes,
-                                                  assumeNoSampleOverlap=assumeNoSampleOverlap,shrinkBiasCorrection=shrinkBiasCorrection,networkR2Thres=args.networkR2Thres,impute=impute,saveData=saveData)
+                                                  assumeNoSampleOverlap=assumeNoSampleOverlap,shrinkBiasCorrection=shrinkBiasCorrection,networkR2Thres=args.networkR2Thres,impute=impute,saveData=saveData,
+                                                  geneSelector=args.geneScreener.lower())
     edgeLists['Chromosome'+str(chromosome)]=edgeD # save edges
     if len(outerDict)==0:
         print('  Skipping chromosome '+str(chromosome)+' because of insufficient phenotype and/or eQTL signals')
@@ -247,9 +252,8 @@ cleanres=(args.cleanResults.lower()=='yes') | (args.cleanResults.lower()=='true'
 if cleanres:
     cr=runningres.copy()
     cr['Pratt']=cr['MRBEEPostSelec_MVMR_Est']*cr['MRBEE_UVMR_Est']
-    cr['GeneSelected']=cr['MRJonesEst']!=0
-    cr=cr[['Gene','geneBP','Chromosome','GeneSelected','MRBEEPostSelec_MVMR_Est','MRBEEPostSelec_MVMR_SE','RsquaredMRJones','Pratt','CHRspecificGroupID']]
-    cr=cr.rename(columns={'MRBEEPostSelec_MVMR_Est':'Est','MRBEEPostSelec_MVMR_SE':'SE','RsquaredMRJones':'R2'})
+    cr=cr[['Gene','geneBP','Chromosome','GeneSelected','MRBEEPostSelec_MVMR_Est','MRBEEPostSelec_MVMR_SE','LocusR2','Pratt','CHRspecificGroupID']]
+    cr=cr.rename(columns={'MRBEEPostSelec_MVMR_Est':'Est','MRBEEPostSelec_MVMR_SE':'SE'})
     cr.to_csv(fp1,sep='\t')
 else:
     runningres.to_csv(fp1,sep='\t')
@@ -263,29 +267,30 @@ print('Analysis diagnostics are written to '+fp2)
 # save executing commands of plotres.r for later - don't want to cause an early error bc users don't have R installed
 
 # delete iteratively saven files if user chose to iteratively save results
-if platform.system()!='Windows':
-    op=os.path.abspath(args.out+'_tempresults.txt')
-    if (args.iterativelySave.lower()=='true') | (args.iterativelySave.lower()=='yes'):
-        out=subprocess.call([callDelete(), op],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-        delcall=callDelete()
-        awd=os.path.abspath(writableDir)
-        out=subprocess.call([delcall, awd+'/tempOut.ld'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-        out=subprocess.call([delcall, awd+'/tempOut.log'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-        out=subprocess.call([delcall, awd+"/myExtract.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-        out=subprocess.call([delcall, awd+"/outcomeplinkout.clumped"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-        out=subprocess.call([delcall, awd+"/outcomeplinkout.log"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-        out=subprocess.call([delcall, awd+"/outcomePsout.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+
+# if platform.system()!='Windows':
+#     op=os.path.abspath(args.out+'_tempresults.txt')
+#     if (args.iterativelySave.lower()=='true') | (args.iterativelySave.lower()=='yes'):
+#         delcall=callDelete()
+#         out=subprocess.call([delcall, op],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+#         awd=os.path.abspath(writableDir)
+#         out=subprocess.call([delcall, awd+'/tempOut.ld'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+#         out=subprocess.call([delcall, awd+'/tempOut.log'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+#         out=subprocess.call([delcall, awd+"/myExtract.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+#         out=subprocess.call([delcall, awd+"/outcomeplinkout.clumped"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+#         out=subprocess.call([delcall, awd+"/outcomeplinkout.log"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+#         out=subprocess.call([delcall, awd+"/outcomePsout.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
 
 ### network construction (done in Python)
 # first find top args.networksInTopKLoci loci
 graphNetworks=(args.graphNetworks.lower()=='yes') | (args.graphNetworks.lower()=='true')
 hasSaved=False
 if (runningres.shape[1]>1) & (graphNetworks):
-    vals=numpy.sort(runningres['RsquaredMRJones'].unique())[::-1]
+    vals=numpy.sort(runningres['LocusR2'].unique())[::-1]
     for _ in range(0,len(vals)):
         if vals[_]<args.networkR2Thres:
             continue
-        dcut=runningres[runningres['RsquaredMRJones']==vals[_]]
+        dcut=runningres[runningres['LocusR2']==vals[_]]
         genes=dcut['Gene'].values.tolist(); genes=[genes[_].split(',')[0] for _ in range(0,len(genes))]
         if dcut.shape[0]<1:
             continue
