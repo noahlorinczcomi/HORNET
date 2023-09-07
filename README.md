@@ -14,25 +14,16 @@ All methods of downloading HORNET require that you are able to type 'python' at 
 Download the `windowsconfig.bat` file from [here](https://github.com/noahlorinczcomi/HORNET/blob/main/windowsconfig.bat) (there is a download link on the page) and move it to some folder where you would like HORNET to be. Double-click on the file and HORNET will be installed. 2.3GB worth of GWAS data will be installed so you can complete this tutorial, but you can remove it when you're done by removing the `HORNET/data/testdata/` folder. You can run HORNET from the command line by copy/pasting the commands in the [Tutorial](#Tutorial) section below, or you can use the desktop GUI version.
 
 ## Linux/Mac users
-If you are using Linux or a Mac, copy/paste the commands below into your terminal or Anaconda prompt.
+If you are using Linux or a Mac, copy/paste the configuration command below into your terminal or Anaconda prompt.
 
 ```unix
-git clone https://github.com/noahlorinczcomi/HORNET.git && cd HORNET
-wget -O hornet_data.tar http://hal.case.edu/~njl96/hornet_data.tar.gz
-tar -xvf hornet_data.tar && rm hornet_data.tar example_man_vol_plots.png
-mkdir tempfiles plots results
-pip install -r requirements.txt
+wget https://raw.githubusercontent.com/noahlorinczcomi/HORNET/main/unixconfig 
+chmod +x unixconfig && ./unixconfig
 ```
 
-The `hornet_data.tar.gz` file is 3.6GB but 2.3GB of those are just for this tutorial. After you're done, run `rm -r testdata` to reduce HORNET's size to 1.3GB.
+The above command downloads a file named `hornet_data.tar.gz`, which is 3.6GB but 2.3GB of which is just for this tutorial. After you're done, run `rm -r testdata` to reduce HORNET's total size to 1.3GB.
 
-Lastly, depending if you're using Linux or Mac, execute one of the following:
-```unix
-chmod +x ./plinkdir/linux/plink
-chmod +x ./plinkdir/mac/plink
-```
-
-The creation of `tempfiles/` is to help you. The program accepts a flag `--writableDir` which expects `tempfiles/` to be given to it. If `tempfiles/` does not exist, you must specify the `--writabledir` flag with any folder/directory that can be iteratively written into while HORNET runs. The creation of `plots/` and `results/` is also to help you. HORNET will try saving plots and results to `plots/` and `results/` folder by default. You can change these by giving something else to the `--networkGraphsOut` and `--out` flags.
+If running the above throws an error, try running the individual commands in the `unixconfig` file one by one to find the source of the issue.
 
 <!---
 Now, in the `HORNET` directory, you should see the following folders and files:
