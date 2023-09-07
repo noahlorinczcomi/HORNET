@@ -18,7 +18,7 @@ If you are using Linux or a Mac, copy/paste the configuration command below into
 
 ```unix
 wget https://raw.githubusercontent.com/noahlorinczcomi/HORNET/main/unixconfig 
-chmod +x unixconfig && ./unixconfig
+dos2unix unixconfig && chmod +x unixconfig && ./unixconfig
 ```
 
 The above command downloads a file named `hornet_data.tar.gz`, which is 3.6GB but 2.3GB of which is just for this tutorial. After you're done, run `rm -r testdata` to reduce HORNET's total size to 1.3GB.
