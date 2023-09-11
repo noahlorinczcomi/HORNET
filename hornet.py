@@ -66,6 +66,7 @@ parser.add_argument('--networkGraphsOut',action='store',type=str,default='plots'
 parser.add_argument('--silence',action='store',type=str,default='no',help='(Optional) Should warnings about the size of the CHP window outside of the target locus be ignored? Put "true" or "yes". The default is "no".')
 parser.add_argument('--hideVersion',action='store',type=str,default='yes',help='(Optional) Should the version number of HORNET be printed at the beginning? If not, put "false" or "no". The default is "yes".')
 ### done
+args=parser.parse_args()
 dontHide=(args.hideVersion.lower()=='yes') | (args.hideVersion.lower()=='true')
 if dontHide:
     f=open('hornet.txt','r')
@@ -74,8 +75,6 @@ if dontHide:
 
 print(' ')
 print('HORNET started '+time.ctime())
-
-args=parser.parse_args()
 
 ### first checking if all of the files/direcetories they gave actually exist
 fileChecker(os.path.abspath(args.eQTLGWAS), 'eQTL GWAS directory')
