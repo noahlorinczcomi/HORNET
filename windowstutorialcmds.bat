@@ -1,4 +1,4 @@
-echo 'Starting Cortex & AD analysis'
+echo 'Starting Cortex and AD analysis'
 python hornet.py ^
  --eQTLGWAS data/testdata/MetaBrain ^
  --phenoGWAS data/testdata/AD_Jansen_etal.txt.gz ^
@@ -15,7 +15,7 @@ python hornet.py ^
  --geneGroupPvalueThreshold 1e-3 ^
  --out results/AD_cortex
 
-echo 'Starting Thyroid & AD analysis'
+echo 'Starting Thyroid and AD analysis'
  python hornet.py ^
  --eQTLGWAS data/testdata/GTEx ^
  --phenoGWAS data/testdata/AD_Jansen_etal.txt.gz ^
