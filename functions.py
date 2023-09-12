@@ -1543,14 +1543,17 @@ def defGeneGroupsByOutcome(q0geneGroups, merged, KbWindow=100,closestK=2):
     lens=[len(geneGroups[ggKeys[x]]) for x in range(0,len(ggKeys))]
     return geneGroups,ggKeys,lens,usedGenes
 
-def defineCandidateGeneGroups(merged,candidateGenes,MbWindow=2):
+def defineCandidateGeneGroups(merged,candidateGenes,q0geneGroups,MbWindow=1):
     geneGroups={}; lens=[]; usedGenes=[]
+    mergedcut=merged.copy()[abs(merged['geneZ'])>q0geneGroups] # subsetting only to significant eQTLs
     for _ in range(0,len(candidateGenes)):
+        if (candidateGenes[_] in mergedcut['Gene'].values.tolist())==False:
+            continue
         usedGenes=flatten_list(usedGenes)
         if candidateGenes[_] in usedGenes: # I don't want any genes appearing in multiple groups
             continue
-        gbp=merged[merged['Gene']==candidateGenes[_]]['geneBP'].values[0]
-        aroundgenes=merged[abs(merged['geneBP']-gbp)<(MbWindow*1e6)]['Gene'].unique()
+        gbp=mergedcut[mergedcut['Gene']==candidateGenes[_]]['geneBP'].values[0]
+        aroundgenes=mergedcut[abs(mergedcut['geneBP']-gbp)<(MbWindow*1e6)]['Gene'].unique()
         geneGroups[candidateGenes[_]]=aroundgenes
         usedGenes.append(aroundgenes.tolist())
         lens.append(len(aroundgenes))
@@ -1629,6 +1632,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         genedf=genedf[genedf['Gene'].isin(list(gnKeep.index))]; # restricting and noting which genes got removed
         newGenes=genedf['Gene'].unique() # list of theseGenes cut to those with a enough observed data to continue
         lostGenes=[theseGenes[x] for x in range(0,len(theseGenes)) if (theseGenes[x] in newGenes)==False] # which genes got removed?
+        diagnostics['droppedGenes']=lostGenes
         if len(newGenes)==1: # if all but one gene just got removed
             reshaped=genedf.copy(); reshaped=reshaped.rename(columns={'geneZ': newGenes[0]+'_Z'})
         else:
@@ -1830,7 +1834,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         #     ld0=numpy.eye(m)
         #     sparsePrecision=ld0.copy()
         #     sparsePrecisionSqrt=ld0.copy()
-        ld0og=ld0.copy(); sparsePrecisionog=sparsePrecision.copy()
+        ld0og=ld0.copy(); 
         ld0=numpy.eye(bx.shape[0]); sparsePrecision=ld0.copy(); sparsePrecisionSqrt=ld0.copy() 
         # this has implications for how nclumps are estimated - that's why I keep a copy of the original LD matrix
         ##########################################
@@ -1898,7 +1902,6 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
             finalEsts=out['theta']
             thingsToMonitor['propNonzeroDeltas']=sum(deltas!=0)/m
         else: # G-screen
-            gam=mad(by.squeeze())*(by.shape[1]**0.5)
             finalEsts,w0,bic=gscreen(bx,by,UU,gamma=mad(by.squeeze())*2,lamvec=lamvec,rho=3/2,eps=1e-2,max_iter=15)
             thingsToMonitor['propNonzeroDeltas']=1-sum(w0)/m
             finalEsts=finalEsts.reshape(bx.shape[1],)
