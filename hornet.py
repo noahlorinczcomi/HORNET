@@ -97,7 +97,12 @@ if (args.geneScreener in ['gscreen','mrjones'])==False:
     raise ValueError('the "--geneScreener" flag accepts either "gscreen" or "mrjones", but you gave it {}'.format(args.geneScreener.lower()))
 
 ##
-candidateGenes=args.candidateGenes.split(',') if len(args.candidateGenes)>0 else []
+candidateGenesIsFile=os.path.isfile(args.candidateGenes)
+if candidateGenesIsFile==False:
+    candidateGenes=args.candidateGenes.split(',') if len(args.candidateGenes)>0 else []
+else:
+    candidateGenes=pandas.read_table(args.candidateGenes,header=None).iloc[:,0].values.tolist()
+
 # drop Ensembl version type if it is present (if it is not, this code will have no effect)
 if len(candidateGenes)>0:
     candidateGenes=[candidateGenes[i].split('.')[0] for i in range(0,len(candidateGenes))]
@@ -203,7 +208,7 @@ for _ in range(0, len(os.listdir(dirGene))):
     elif len(candidateGenes)>0:
         if any(merged['Gene'].isin(candidateGenes))==False:
             continue
-        geneGroups,ggKeys,lens,usedGenes=defineCandidateGeneGroups(merged,candidateGenes,MbWindow=2)
+        geneGroups,ggKeys,lens,usedGenes=defineCandidateGeneGroups(merged,candidateGenes,q0geneGroups,MbWindow=1)
     else:
         geneGroups,ggKeys,lens,usedGenes=defGeneGroups(q0geneGroups,merged)
     # [print(geneGroupFinder(geneGroups,candidateGenes[i],isGtex=True if isRawGTEx else False)) for i in range(0,len(candidateGenes))]
