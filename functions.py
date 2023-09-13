@@ -1632,7 +1632,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         genedf=genedf[genedf['Gene'].isin(list(gnKeep.index))]; # restricting and noting which genes got removed
         newGenes=genedf['Gene'].unique() # list of theseGenes cut to those with a enough observed data to continue
         lostGenes=[theseGenes[x] for x in range(0,len(theseGenes)) if (theseGenes[x] in newGenes)==False] # which genes got removed?
-        diagnostics['droppedGenes']=lostGenes
+        thingsToMonitor['droppedGenes']=lostGenes
         if len(newGenes)==1: # if all but one gene just got removed
             reshaped=genedf.copy(); reshaped=reshaped.rename(columns={'geneZ': newGenes[0]+'_Z'})
         else:
