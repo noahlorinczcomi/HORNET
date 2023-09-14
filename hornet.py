@@ -72,6 +72,7 @@ if dontHide:
     f=open('hornet.txt','r')
     con=f.read()
     print(con)
+    f.close()
 
 print(' ')
 print('HORNET started '+time.ctime())
