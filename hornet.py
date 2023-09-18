@@ -279,19 +279,18 @@ print('Analysis diagnostics are written to '+fp2)
 # save executing commands of plotres.r for later - don't want to cause an early error bc users don't have R installed
 
 # delete iteratively saven files if user chose to iteratively save results
-
-# if platform.system()!='Windows':
-#     op=os.path.abspath(args.out+'_tempresults.txt')
-#     if (args.iterativelySave.lower()=='true') | (args.iterativelySave.lower()=='yes'):
-#         delcall=callDelete()
-#         out=subprocess.call([delcall, op],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-#         awd=os.path.abspath(writableDir)
-#         out=subprocess.call([delcall, awd+'/tempOut.ld'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-#         out=subprocess.call([delcall, awd+'/tempOut.log'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-#         out=subprocess.call([delcall, awd+"/myExtract.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-#         out=subprocess.call([delcall, awd+"/outcomeplinkout.clumped"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-#         out=subprocess.call([delcall, awd+"/outcomeplinkout.log"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-#         out=subprocess.call([delcall, awd+"/outcomePsout.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+if platform.system()!='Windows':
+    op=os.path.abspath(args.out+'_tempresults.txt')
+    if (args.iterativelySave.lower()=='true') | (args.iterativelySave.lower()=='yes'):
+        delcall=callDelete()
+        out=subprocess.call([delcall, op],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+        awd=os.path.abspath(writableDir)
+        out=subprocess.call([delcall, awd+'/tempOut.ld'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+        out=subprocess.call([delcall, awd+'/tempOut.log'],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+        out=subprocess.call([delcall, awd+"/myExtract.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+        out=subprocess.call([delcall, awd+"/outcomeplinkout.clumped"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+        out=subprocess.call([delcall, awd+"/outcomeplinkout.log"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+        out=subprocess.call([delcall, awd+"/outcomePsout.txt"],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
 
 ### network construction (done in Python)
 # first find top args.networksInTopKLoci loci
@@ -321,10 +320,6 @@ if (runningres.shape[1]>1) & (graphNetworks):
         leadgene=leadgene.split('.')[0]
         fig.savefig(os.path.abspath(args.networkGraphsOut)+'/'+args.graphNetworksFilePrefix+'_'+leadgene+'_graph.png',dpi=500)
         hasSaved=True
-        ### run if using as an example
-        # edges=numpy.array([[0,1,0],[1,0,1],[0,1,0]])
-        # genes=['geneA','geneB']
-        # leadgene='geneA'
 
 print(' ')
 if graphNetworks & hasSaved:
