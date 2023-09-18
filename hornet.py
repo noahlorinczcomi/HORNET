@@ -209,7 +209,7 @@ for _ in range(0, len(os.listdir(dirGene))):
     elif len(candidateGenes)>0:
         if any(merged['Gene'].isin(candidateGenes))==False:
             continue
-        geneGroups,ggKeys,lens,usedGenes=defineCandidateGeneGroups(merged,candidateGenes,q0geneGroups,MbWindow=1)
+        # geneGroups,ggKeys,lens,usedGenes=defineCandidateGeneGroups(merged,candidateGenes,q0geneGroups)
     else:
         geneGroups,ggKeys,lens,usedGenes=defGeneGroups(q0geneGroups,merged)
     # [print(geneGroupFinder(geneGroups,candidateGenes[i],isGtex=True if isRawGTEx else False)) for i in range(0,len(candidateGenes))]

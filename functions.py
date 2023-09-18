@@ -1543,23 +1543,23 @@ def defGeneGroupsByOutcome(q0geneGroups, merged, KbWindow=100,closestK=2):
     lens=[len(geneGroups[ggKeys[x]]) for x in range(0,len(ggKeys))]
     return geneGroups,ggKeys,lens,usedGenes
 
-def defineCandidateGeneGroups(merged,candidateGenes,q0geneGroups,MbWindow=1):
-    geneGroups={}; lens=[]; usedGenes=[]
-    mergedcut=merged.copy()[abs(merged['geneZ'])>q0geneGroups] # subsetting only to significant eQTLs
-    for _ in range(0,len(candidateGenes)):
-        if (candidateGenes[_] in mergedcut['Gene'].values.tolist())==False:
-            continue
-        usedGenes=flatten_list(usedGenes)
-        if candidateGenes[_] in usedGenes: # I don't want any genes appearing in multiple groups
-            continue
-        gbp=mergedcut[mergedcut['Gene']==candidateGenes[_]]['geneBP'].values[0]
-        aroundgenes=mergedcut[abs(mergedcut['geneBP']-gbp)<(MbWindow*1e6)]['Gene'].unique()
-        geneGroups[candidateGenes[_]]=aroundgenes
-        usedGenes.append(aroundgenes.tolist())
-        lens.append(len(aroundgenes))
-    ggKeys=list(geneGroups)
-    usedGenes=flatten_list(usedGenes)
-    return geneGroups,ggKeys,lens,usedGenes
+# def defineCandidateGeneGroups(merged,candidateGenes,q0geneGroups,MbWindow=1):
+#     geneGroups={}; lens=[]; usedGenes=[]
+#     mergedcut=merged.copy()[abs(merged['geneZ'])>q0geneGroups] # subsetting only to significant eQTLs
+#     for _ in range(0,len(candidateGenes)):
+#         if (candidateGenes[_] in mergedcut['Gene'].values.tolist())==False:
+#             continue
+#         usedGenes=flatten_list(usedGenes)
+#         if candidateGenes[_] in usedGenes: # I don't want any genes appearing in multiple groups
+#             continue
+#         gbp=mergedcut[mergedcut['Gene']==candidateGenes[_]]['geneBP'].values[0]
+#         aroundgenes=mergedcut[abs(mergedcut['geneBP']-gbp)<(MbWindow*1e6)]['Gene'].unique()
+#         geneGroups[candidateGenes[_]]=aroundgenes
+#         usedGenes.append(aroundgenes.tolist())
+#         lens.append(len(aroundgenes))
+#     ggKeys=list(geneGroups)
+#     usedGenes=flatten_list(usedGenes)
+#     return geneGroups,ggKeys,lens,usedGenes
 
 # perform analysis
 def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
