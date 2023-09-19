@@ -1598,7 +1598,8 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
     if len(candidateGenes)>0: # redundant, but just in case
         candidateGenes=[candidateGenes[i].split('.')[0] for i in range(0,len(candidateGenes))]
         analysisOnlyInOutcomeLoci=False # perform analysis in candidateGenes loci
-    
+        nMinIVs=10
+        hessMinScale=0 # I want to let the user get what they ask for, instead of restrciting them
     progs=list(numpy.linspace(0,len(geneGroups),10)); progs=[int(progs[x]) for x in range(0,len(progs))] # for progress printing
     thingsMonitored={}; outerDict={}; edgeDict={}
     for ogene in range(0, len(geneGroups)): # 0, len(geneGroups)
@@ -1843,7 +1844,6 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         toKeep=(numpy.diag(bx.T@bx)>(hessMinScale*bx.shape[0]/2)) # can change factor if you want; default is hessMinScale=5
         if sum(toKeep)<2: # if less than 2 genes available
             continue
-        
         bx=bx[:,toKeep]; bx0=bx0[:,toKeep]
         ccComplete=ccComplete[toKeep,:][:,toKeep]
         droppedGenes=numpy.array(cn)[toKeep==False].tolist()
