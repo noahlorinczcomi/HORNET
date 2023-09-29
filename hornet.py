@@ -240,6 +240,7 @@ for _ in range(0, len(os.listdir(dirGene))):
         numpy.savetxt(fpout+'bybx.txt',numpy.column_stack((outerDict[ln]['by'],outerDict[ln]['bX'])))
         numpy.savetxt(fpout+'UU.txt',outerDict[ln]['UU'])
         numpy.savetxt(fpout+'LD.txt',outerDict[ln]['regLD'])
+        numpy.savetxt(fpout+'effectAlleles.txt',numpy.array(outerDict[ln]['data']['EffectAlleles']),fmt='%s')
         numpy.savetxt(fpout+'genes.txt',numpy.array(outerDict[ln]['data']['Gene']),fmt='%s')
         numpy.savetxt(fpout+'snps.txt',numpy.array(outerDict[ln]['data']['IVs']),fmt='%s')
         numpy.savetxt(fpout+'geneBPs.txt',numpy.array(outerDict[ln]['data']['GeneBP']),fmt='%s')
