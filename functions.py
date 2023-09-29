@@ -1994,7 +1994,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         # pretty sure h2 cannot be reliably estimated from the data because bx=bhat*nk/sigk where I do not know sigk and there is evidence that it is not 1.        
         # d1['data']=reshaped # probably don't want to save the data ... will take up a lot of memory
         d1={}
-        d1['data']={'Gene': cn_, 'GeneBP': gl, 'IVs': reshaped['geneSNP'].values.tolist()}
+        d1['data']={'Gene': cn_, 'GeneBP': gl, 'IVs': reshaped['geneSNP'].values.tolist(), 'EffectAlleles': reshaped['phenoEffectAllele'].values.tolist()}
         if saveData: # currently not used after this point. data gets outputted by MVMRWorkhorse() but is not saved after that
             d1['bX']=bx; d1['by']=by; d1['UU']=UU; d1['UV']=UV; d1['regLD']=ld0
         paraDf.index=paraDf['Gene']; paraDf=paraDf.reindex(cn_)
