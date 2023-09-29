@@ -242,9 +242,9 @@ for _ in range(0, len(os.listdir(dirGene))):
         numpy.savetxt(fpout+'LD.txt',outerDict[ln]['regLD'])
         #numpy.savetxt(fpout+'genes.txt',outerDict[ln]['data']['Gene'].values)
         #numpy.savetxt(fpout+'snps.txt',outerDict[ln]['data']['IVs'])
-        print(outerDict[ln]['data']['Gene'].values); print(type(outerDict[ln]['data']['Gene'].values))
+        print(outerDict[ln]['data']['Gene']); print(type(outerDict[ln]['data']['Gene'].values))
         print(outerDict[ln]['data']['IVs']); print(type(outerDict[ln]['data']['IVs']))
-        print(outerDict[ln]['data']['GeneBP'].values); print(type(outerDict[ln]['data']['GeneBP'].values))
+        print(outerDict[ln]['data']['GeneBP']); print(type(outerDict[ln]['data']['GeneBP'].values))
         #numpy.savetxt(fpout+'geneBPs.txt',outerDict[ln]['data']['GeneBP'].values)
 
     # LDLeadGeneSNPs(res,thischr,writableDir,ldRefDir) # write out results to be read in by an R program that will make figures etc.    
