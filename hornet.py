@@ -235,7 +235,7 @@ for _ in range(0, len(os.listdir(dirGene))):
     # if user wanted to save raw data, do that now inside of the chosen directory
     if saveData: 
         fpout=os.path.abspath(args.whereSaveRawData)+'/'
-        print('raw data are saved in the "bybx.txt", "UU.txt", and "LD.txt" files in the {} directory'.format(fpout))
+        print('raw data are saved in the "bybx.txt", "UU.txt", "LD.txt", "snps.txt", "genes.txt", and "geneBPs.txt" files in the {} directory'.format(fpout))
         ln=list(outerDict)[0]
         numpy.savetxt(fpout+'bybx.txt',numpy.column_stack((outerDict[ln]['by'],outerDict[ln]['bX'])))
         numpy.savetxt(fpout+'UU.txt',outerDict[ln]['UU'])
