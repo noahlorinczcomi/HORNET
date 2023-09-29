@@ -240,6 +240,9 @@ for _ in range(0, len(os.listdir(dirGene))):
         numpy.savetxt(fpout+'bybx.txt',numpy.column_stack((outerDict[ln]['by'],outerDict[ln]['bX'])))
         numpy.savetxt(fpout+'UU.txt',outerDict[ln]['UU'])
         numpy.savetxt(fpout+'LD.txt',outerDict[ln]['regLD'])
+        numpy.savetxt(fpout+'genes.txt',outerDict[ln]['data']['Gene'])
+        numpy.savetxt(fpout+'snps.txt',outerDict[ln]['data']['IVs'])
+        numpy.savetxt(fpout+'geneBPs.txt',outerDict[ln]['data']['GeneBP'])
 
     # LDLeadGeneSNPs(res,thischr,writableDir,ldRefDir) # write out results to be read in by an R program that will make figures etc.    
     t1=time.perf_counter()-t0
