@@ -10,6 +10,11 @@ if(!require('ggrepel')) {
   print('ggrepel required but not installed in this environment. Installing now')
   install.packages('ggrepel',repos='http://cran.us.r-project.org')
 }
+if(!require('dplyr')) {
+  print('dplyr required but not installed in this environment. Installing now')
+  install.packages('dplyr',repos='http://cran.us.r-project.org')
+}
+library(ggplot2);library(ggrepel);library(dplyr)
 source("modCMplot.r") # also using CMplot
 # data must be present like this /HORNET/res.csv  --- I am going to make a cpres.py file to ensure this
 ############################################################################################################################################
@@ -41,10 +46,9 @@ if(isens) {
 isclean='Pratt' %in% colnames(data)
 if(!isclean) {
   data=data %>%
-    rename(Est=MRBEEPostSelec_MVMR_Est,SE=MRBEEPostSelec_MVMR_SE) %>%
+    rename(Est=MRBEEPostSelec_MVMR_Est,SE=MRBEEPostSelec_MVMR_SE,LocusR2=RsquaredMRJones) %>%
     mutate(Pratt=Est*MRBEE_UVMR_Est)
 }
-
 ############################################################################################################################################
 # manhattan plots using CMplot (annotated P-values and rsquared)
 ############################################################################################################################################
