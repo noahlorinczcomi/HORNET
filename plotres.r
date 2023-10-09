@@ -36,14 +36,24 @@ if(isens) {
   colnames(data)[which(colnames(data)=='GeneName')]='Gene'
 }
 ############################################################################################################################################
+# Did user give clean/reduced or full results?
+############################################################################################################################################
+isclean='Pratt' %in% colnames(data)
+if(!isclean) {
+  data=data %>%
+    rename(Est=MRBEEPostSelec_MVMR_Est,SE=MRBEEPostSelec_MVMR_SE) %>%
+    mutate(Pratt=Est*MRBEE_UVMR_Est)
+}
+
+############################################################################################################################################
 # manhattan plots using CMplot (annotated P-values and rsquared)
 ############################################################################################################################################
-mandf=data[,c('Gene','Chromosome','geneBP','LocusR2','MRBEEPostSelec_MVMR_Est','MRBEEPostSelec_MVMR_SE')]
+mandf=data[,c('Gene','Chromosome','geneBP','LocusR2','Est','SE')]
 mandf=na.omit(mandf)
 if(nrow(mandf)==0) {
   mess='Could not create Manhattan plot because of insufficient data available'
 } else {
-  mandf$GeneP=1-pchisq((mandf$MRBEEPostSelec_MVMR_Est/mandf$MRBEEPostSelec_MVMR_SE)^2,1)
+  mandf$GeneP=1-pchisq((mandf$Est/mandf$SE)^2,1)
   traitdf=mandf[,c('Gene','Chromosome','geneBP','LocusR2','GeneP')]; colnames(traitdf)[3]='Position'
   traitdf$Gene=sapply(traitdf$Gene,function(h) unlist(strsplit(h,'[.]'))[1])
   ### Circular manhattan of MR-Jones R-squared (inner) and gene P-value (outer)
@@ -86,11 +96,11 @@ cat(mess)
 ############################################################################################################################################
 prattcut=0.2
 qcut=qnorm(1-5e-5)
-vdf=data[,c('Gene','Chromosome','geneBP','LocusR2','MRBEEPostSelec_MVMR_Est','MRBEEPostSelec_MVMR_SE','MRBEE_UVMR_Est')]
+vdf=data[,c('Gene','Chromosome','geneBP','LocusR2','Est','SE','Pratt')]
 vdf=na.omit(vdf)
 vdf$Gene=sapply(vdf$Gene,function(h) unlist(strsplit(h,'[.]'))[1])
-vdf$z=vdf$MRBEEPostSelec_MVMR_Est/vdf$MRBEEPostSelec_MVMR_SE
-vdf$pratt=vdf$MRBEEPostSelec_MVMR_Est*vdf$MRBEE_UVMR_Est
+vdf$z=vdf$Est/vdf$SE
+vdf$pratt=vdf$Pratt
 vdf$shapevar=NA
 vdf$shapevar[(abs(vdf$z)>qcut) & (vdf$pratt<prattcut)]=1
 vdf$shapevar[(abs(vdf$z)>qcut) & (vdf$pratt>prattcut)]=2
