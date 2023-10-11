@@ -1915,6 +1915,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
             if numpy.all(em[:,0]==em[0,0]) | numpy.all(em[:,1]==em[1,1]):
                 r2mr=0
             else:
+                (numpy.sum(em[:,1]**2)-m*numpy.sum(finalEsts**2))/(numpy.sum(by0**2)-m)
                 r2mr=numpy.corrcoef(em,rowvar=False)[0,1]**2
         finalEsts=finalEsts[1:]
         paraDf=pandas.DataFrame.from_dict({'gg': numpy.array(cn), 'GeneSelected': finalEsts!=0})
