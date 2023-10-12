@@ -68,9 +68,9 @@ if args.message.lower() in ['yes','true']:
 # 5) if not, novel! print/save those
 
 # if no P-value column, will need to add it
+datain=pandas.read_csv(os.path.abspath(args.phenoGWAS),sep=None,engine='python')
 if args.phenoP=='missing':
-    spp=args.pz.split('@')
-    datain=pandas.read_csv(os.path.abspath(args.phenoGWAS),sep=None,engine='python')
+    spp=args.phenoZ.split('@')
     if len(spp)>1:
         betacol=spp[0]
         secol=spp[1]
@@ -79,17 +79,23 @@ if args.phenoP=='missing':
         datain['P']=2*norm.cdf(-abs(datain['Z']))
     else:
         datain['P']=2*norm.cdf(-abs(datain[args.phenoZ]))
-    datain[[args.phenoRSID,'P']].to_csv(os.path.abspath(os.getcwd())+'/a.txt') # will be removed later    
+    datain=datain.rename(columns={args.phenoRSID:'SNP'})
 else:
-    cmd=[callPlink(),"--bfile", os.path.abspath(args.LDRef), "--clump", os.path.abspath(args.phenoGWAS), "--clump-kb", str(args.phenoKbThres), "--clump-p1", str(args.phenoPSignifThres),"--clump-p2", str(args.phenoPSignifThres), "--clump-r2", str(args.phenoR2Thres), "--out", os.path.abspath(os.getcwd())+'/a','--clump-snp-field',args.phenoRSID]
-out=subprocess.call(cmd,stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT) # executing the command in the terminal
-oc=pandas.read_fwf('a.clumped', sep='\t') # load clumps; will have columns SNP, CHR, BP, etc.
+    datain=datain.rename(columns={args.phenoRSID:'SNP',args.phenoP:'P'})
+datain[['SNP','P']].to_csv('a.txt',sep='\t',index=False)
+cmd=[callPlink(),"--bfile", os.path.abspath(args.LDRef), "--clump", os.path.abspath('a.txt'), "--clump-kb", str(args.phenoKbThres), "--clump-p1", str(args.phenoPSignifThres),"--clump-p2", str(args.phenoPSignifThres), "--clump-r2", str(args.phenoR2Thres), "--out",'a']
+out=subprocess.call(cmd,stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+print(*cmd)
+fpin=os.path.abspath('a.clumped')
+print(fpin)
+print(os.path.isfile(fpin))
+oc=pandas.read_fwf(fpin, sep='\t') # load clumps; will have columns SNP, CHR, BP, etc.
 oc=oc.dropna() # for some reason some NAs get appended to the end
 res=pandas.read_csv(os.path.abspath(args.results),sep=None,engine='python')
 # did user give me complete results or cleaned results?
-if 'Est' in res.columns.tolist(): # if this is in there, they gave me clean results
+if 'LocusR2' in res.columns.tolist(): # if this is in there, they gave me clean results
     res['Q']=(res['Est']/res['SE'])**2
-    res=res.rename(columns={'R2':'RsquaredMRJones'})
+    res=res.rename(columns={'LocusR2':'RsquaredMRJones'})
 else:
     res['Q']=(res['MRBEEPostSelec_MVMR_Est']/res['MRBEEPostSelec_MVMR_SE'])**2
     res['Pratt']=res['MRBEEPostSelec_MVMR_Est']*res['MRBEEPostSelec_MVMR_SE']
@@ -121,7 +127,7 @@ for _ in range(0,len(chrs)): # for each chromosome in the results
     clumpchrdf=oc[oc['CHR']==chrs[_]]
     if clumpchrdf.shape[0]==0:
         novelGenes.append(reschrdf['Gene'].unique().tolist())
-        novelchrs.append((reschrdf['Chromosome'].values)[0]*reschrdf.shape[0])
+        novelchrs.append(reschrdf['Chromosome'].values.tolist())
         closestSNPs.append([float('nan')]*reschrdf.shape[0])
         closestBPs.append([float('nan')]*reschrdf.shape[0])
         closestPs.append([float('nan')]*reschrdf.shape[0])
@@ -132,7 +138,7 @@ for _ in range(0,len(chrs)): # for each chromosome in the results
         # this code is actually recording all genes meeting this criteria, even if they are in the same locus as each other
         if all(alldist>(args.novelKbWindow*1000)):
             novelGenes.append((reschrdf['Gene'].values)[j])
-            novelchrs.append((reschrdf['Chromosome'].values)[j])
+            novelchrs.append((reschrdf['Chromosome'].values)[0])
             closeix=numpy.argmin(alldist)
             closestSNPs.append((clumpchrdf['SNP'].values)[closeix])
             closestBPs.append((clumpchrdf['BP'].values)[closeix])
@@ -140,10 +146,17 @@ for _ in range(0,len(chrs)): # for each chromosome in the results
 if len(novelGenes)==0:
     raise ValueError('\n\n no significant genes given your definition of "significant"')
 novelGenes=numpy.array(flatten_list(novelGenes))
+novelchrs=numpy.array(flatten_list(novelchrs))
 closestSNPs=numpy.array(flatten_list(closestSNPs))
 closestBPs=numpy.array(flatten_list(closestBPs))
 closestPs=numpy.array(flatten_list(closestPs))
 # be prepared to tell the user which outcome signals were the closest to these genes
+# print(len(novelGenes))
+# print(len(novelchrs))
+# #print(len(res[res['Gene'].isin(novelGenes)]['Chromosome'].values))
+# print(len(closestSNPs))
+# print(len(closestBPs))
+# print(len(closestPs))
 pdf=pandas.DataFrame({'NovelGene':novelGenes,'Chromosome':novelchrs,'ClosestPhenoSNP':closestSNPs,'ClosestPhenoBP':closestBPs,'ClosestPhenoPvalue':closestPs})
 # add other info like pratt index etc
 res=res.rename(columns={'Gene':'NovelGene','RsquaredMRJones':'LocusR2','Q':'CausalChisq'})
