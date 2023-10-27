@@ -1935,7 +1935,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
             ta=geneLocs[mask]['geneBP'].values
             gl.append(float(ta))
         # finally, perform analysis using MVMR and uni MR with MR-Egger (this is equivalent to SMR and the Porcu et al methods)
-        ivwout=IVW(bx,by,sparsePrecision,newX,uniIVPThreshold=1e-5) # only IVs with P<uniIVPThreshold will be considered in univariable MR
+        ivwout=IVW(bx,by,sparsePrecision,newX,uniIVPThreshold=1e-3) # only IVs with P<uniIVPThreshold will be considered in univariable MR
         ivwout['gg']=cn # cn is the order of genes in paraDf (check: [cn[x]==paraDf['gg'].values[x] for x in range(0,len(cn))])
         paraDf=pandas.merge(paraDf,ivwout,left_on='gg',right_on='gg')
         # add BP position for lead SNP to paraDf
