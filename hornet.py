@@ -193,7 +193,7 @@ for _ in range(0, len(os.listdir(dirGene))):
     mask=merged.phenoEffectAllele.str.upper()!=merged.a1.str.upper()
     merged.loc[mask,'geneZ']=(-1*merged.loc[mask,'geneZ']) # harmonizing geneZ to bim effect allele
     merged.loc[mask,'phenoZ']=(-1*merged.loc[mask,'phenoZ']) # harmonizing phenoZ to bim effect allele
-    chromosome=merged2['chr'].unique(); chromosome=int(chromosome)
+    chromosome=merged['chr'].unique(); chromosome=int(chromosome)
     del dataGene; # delete data we no longer need
     # check merged data for candidate gene(s) if user provided any (not much speed advantage checking merged vs dataGene bc merging is very fast)
     merged['Gene']=merged['Gene'].apply(lambda x: x.split('.')[0])
