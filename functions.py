@@ -1803,15 +1803,6 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         someDropped,snpsKept=LDShrinkUpper(ldmat,ldUpperLimit,snps); ld0=someDropped.copy() # find those not in ~perfect LD (>tau) with any others (makes ldmat pos def)
         mask=reshaped['geneSNP'].isin(snpsKept)
         reshaped=reshaped[mask] # restrict to only SNPs from line above    
-        ######################### ensure that effect alleles in data match 'effect' alleles in bim file
-        
-        
-        
-        # 'geneEffectAllele' 'geneZ' 'phenoEffectAllele' 'phenoZ' 
-
-
-
-
         newX=newX[mask]
         thingsToMonitor['snpsDroppedBCHighLD']=ldmat.shape[0]-ld0.shape[0] # number of SNPs dropped because of high LD correlations
         ######################### if the number of IVs is very small, we can't really trust any results
