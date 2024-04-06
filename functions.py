@@ -1402,6 +1402,7 @@ def mergeExposureAndOutcomeGWAS(dataGene,dataPheno):
     # harmonise exposure and outcome effect sizes by effect alleles
     mask=merged.geneEffectAllele.str.upper()!=merged.phenoEffectAllele.str.upper() # find where [uppercase] alleles do not match
     merged.loc[mask,'geneZ']=(-1*merged.loc[mask,'geneZ']) # change sign of Z-stat for gene expression if effect alleles do not match
+    # implicitly makes the outcome effect allele the effect allele
     return merged
 
 # function to attach rsIDs to GTEx data that is in hg38 and SNPs are named as eg chr9_10536_C_T_b38
@@ -1802,6 +1803,15 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         someDropped,snpsKept=LDShrinkUpper(ldmat,ldUpperLimit,snps); ld0=someDropped.copy() # find those not in ~perfect LD (>tau) with any others (makes ldmat pos def)
         mask=reshaped['geneSNP'].isin(snpsKept)
         reshaped=reshaped[mask] # restrict to only SNPs from line above    
+        ######################### ensure that effect alleles in data match 'effect' alleles in bim file
+        
+        
+        
+        # 'geneEffectAllele' 'geneZ' 'phenoEffectAllele' 'phenoZ' 
+
+
+
+
         newX=newX[mask]
         thingsToMonitor['snpsDroppedBCHighLD']=ldmat.shape[0]-ld0.shape[0] # number of SNPs dropped because of high LD correlations
         ######################### if the number of IVs is very small, we can't really trust any results

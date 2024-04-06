@@ -188,8 +188,12 @@ for _ in range(0, len(os.listdir(dirGene))):
     fpGene=os.listdir(dirGene)[_] # define filepath for exposure data
     dataGene=loadExposureGWASData(dirGene+'/'+fpGene,effectAlleleGene,zGene,rsidGene,snpBPGene,geneLabelGene,geneBPLabelGene,nLabel=nLabel,isRawGzippedGTEx=isRawGTEx,mapwd=mapwd) # load genes
     merged=mergeExposureAndOutcomeGWAS(dataGene,dataPheno) # merge with outcome/phenotype data
-    mm=pandas.merge(bim,merged['geneSNP'].drop_duplicates(),left_on='rsid',right_on='geneSNP') # find chromosome
-    chromosome=mm['chr'].values[0]
+    merged=pandas.merge(merged,bim[['rsid','chr','a1']],left_on='geneSNP',right_on='rsid')
+    # harmonise effect sizes to the 'effect' allele in the bim file, which is 'a1' (effect sizes currently harmonized to phenoEffectAllele)
+    mask=merged.phenoEffectAllele.str.upper()!=merged.a1.str.upper()
+    merged.loc[mask,'geneZ']=(-1*merged.loc[mask,'geneZ']) # harmonizing geneZ to bim effect allele
+    merged.loc[mask,'phenoZ']=(-1*merged.loc[mask,'phenoZ']) # harmonizing phenoZ to bim effect allele
+    chromosome=merged2['chr'].unique(); chromosome=int(chromosome)
     del dataGene; # delete data we no longer need
     # check merged data for candidate gene(s) if user provided any (not much speed advantage checking merged vs dataGene bc merging is very fast)
     merged['Gene']=merged['Gene'].apply(lambda x: x.split('.')[0])
