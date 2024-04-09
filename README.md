@@ -1,13 +1,8 @@
 This tutorial demonstrates how to download and use the HORNET software to perform genome-wide searches for genes whose expression may cause disease risk. 
 
-HORNET performs multivariable Mendelian Randomization (MR) using the MR with JOint selectioN of exposurES and pleiotropy (MR-Jones) method. MR-Jones is an extension of the MR with Bias-corrected Estimating Equations (MRBEE) method to the high dimensional setting and adjusts for horizontal pleiotropy using penalized regression.
+HORNET performs multivariable Mendelian Randomization (MR) using variable selection and MR with Bias-corrected Estimating Equations (MRBEE)
 
-<!---
-The HORNET, MR-Jones, and MRBEE papers can be found from the following references:
-1. (**HORNET**) HORNET preprint
-2. (**MR-Jones**) preprint
-3. Lorincz-Comi, N., Yang, Y., Li, G., & Zhu, X. (2023). MRBEE: A novel bias-corrected multivariable Mendelian Randomization method. *bioRxiv*, 2023-01. DOI: https://doi.org/10.1101/2023.01.10.523480
---->
+Lorincz-Comi, N., Yang, Y., Li, G., & Zhu, X. (2023). MRBEE: A novel bias-corrected multivariable Mendelian Randomization method. *bioRxiv*, 2023-01. DOI: https://doi.org/10.1101/2023.01.10.523480.
 
 # Downloading HORNET
 All methods of downloading HORNET require that you are able to type 'python' at your command line and a Python (v3.7.0 or later) console opens. This can be easily achieved by downloading [Anaconda](https://www.anaconda.com/download/).
