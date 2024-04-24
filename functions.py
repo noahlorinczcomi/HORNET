@@ -1945,7 +1945,7 @@ def MVMRworkhorse(merged,geneGroups,ggKeys,writableDir,ldRefDir,isGtex=False,
         paraDf=pandas.merge(paraDf,genedf[['Gene','geneBP']].drop_duplicates(keep='first'), left_on='Gene',right_on='Gene') # add gene BP to paraDf for each gene
         paraDf=paraDf.sort_values('geneBP') # order by gene BP
         # approximate bias in using SMR
-        smrbias=perGeneSMRBias(bx,by,ld0,sparsePrecision,newX,UU,UV,cn_,IVPThresh=UniMRIVPThreshold,r2Thresh=0.25,minNIVs=5)
+        smrbias=perGeneSMRBias(bx,by,ld0,sparsePrecision,newX,UU,UV,cn_,IVPThresh=UniMRIVPThreshold,r2Thresh=0.25,minNIVs=2)
         paraDf=pandas.merge(paraDf,smrbias,left_on='Gene',right_on='gene')
         # # MRBEE with ridge
         # mrbeeRidge=MRBEERidge(bx,by,UU,UV,VV,sparsePrecision,nLambda=20)
