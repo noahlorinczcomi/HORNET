@@ -2,7 +2,9 @@ This tutorial demonstrates how to download and use the HORNET software to perfor
 
 HORNET performs multivariable Mendelian Randomization (MR) using variable selection and MR with Bias-corrected Estimating Equations (MRBEE)
 
-Lorincz-Comi, N., Yang, Y., Li, G., & Zhu, X. (2023). MRBEE: A novel bias-corrected multivariable Mendelian Randomization method. *bioRxiv*, 2023-01. DOI: https://doi.org/10.1101/2023.01.10.523480.
+Lorincz-Comi, N., Yang, Y., Li, G., & Zhu, X. (2024). MRBEE: A bias-corrected multivariable Mendelian randomization method. Human Genetics and Genomics Advances, 5(3). https://doi.org/10.1016/j.xhgg.2024.100290. 
+
+Lorincz-Comi, N., Yang, Y., Ajayakumar, J., Mews, M.A., Bermudez, V., Bush, W. & Zhu, X. (2024) HORNET: Tools to find genes with causal evidence and their regulatory networks using eQTLs, *medrXiv*. https://doi.org/10.1101/2024.10.28.24316273.
 
 # Downloading HORNET
 All methods of downloading HORNET require that you are able to type 'python' at your command line and a Python (v3.7.0 or later) console opens. This can be easily achieved by downloading [Anaconda](https://www.anaconda.com/download/).
