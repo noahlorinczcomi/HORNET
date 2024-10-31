@@ -13,7 +13,7 @@ All methods of downloading HORNET require that you are able to type 'python' at 
 Download the `windowsconfig.bat` file from [here](https://github.com/noahlorinczcomi/HORNET/blob/main/windowsconfig.bat) (there is a download link on the page) and move it to some folder where you would like HORNET to be. Double-click on the file and HORNET will be installed. 2.3GB worth of GWAS data will be installed so you can complete this tutorial, but you can remove it when you're done by removing the `HORNET/data/testdata/` folder. You can run HORNET from the command line by copy/pasting the commands in the [Tutorial](#Tutorial) section below, or you can use the desktop GUI version.
 
 ## Linux/Mac users
-If you are using Linux or a Mac, copy/paste the configuration command below into your terminal or Anaconda prompt.
+Copy/paste the configuration command below into your terminal or Anaconda prompt.
 
 ```unix
 wget https://raw.githubusercontent.com/noahlorinczcomi/HORNET/main/unixconfig 
