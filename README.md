@@ -1,3 +1,4 @@
+# Overview
 This tutorial demonstrates how to download and use the HORNET software to perform genome-wide searches for genes whose expression may cause disease risk. 
 
 HORNET performs multivariable Mendelian Randomization (MR) using variable selection and MR with Bias-corrected Estimating Equations (MRBEE)
