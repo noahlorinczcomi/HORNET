@@ -1,0 +1,21 @@
+name: hornet
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  # languages
+  - python>=3.7.0
+  - r-base>=4.0.0
+  # R packages
+  - ggplot2
+  - dplyr
+  - ggrepel
+  # py packages
+  - matplotlib>=3.5.2
+  - networkx>=2.8.4
+  - numpy>=1.21.5
+  - pandas>=1.4.4
+  - pyarrow>=12.0.1
+  - scipy>=1.9.1
+  - statsmodels>=0.13.2

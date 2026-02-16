@@ -1,0 +1,44 @@
+CHANGES
+    Intro
+    - (done) change Mina Chung to Mina K. Chung
+    - (done) missing "." first sentence paragraph 2 of intro
+    Results
+    - (done) "Druggable genes are defined as genes whose product (protein) has available binding ligands from currently FDA-approved or clinically investigative drugs using by cross-referencing" to "Druggable genes are defined as genes whose product (protein) has available binding ligands from currently FDA-approved or clinically investigative drugs IDENTIFIED by cross-referencing"
+    - (done) "The smallest AD GWAS P-value within 5 0kb" to "The smallest AD GWAS P-value within 50kb"
+    - (edited, comment not left; not working) "Using GenT, we identify 16, 15, 35, and 83 candidate genes linked to Alzheimer’s disease, amyotrophic lateral sclerosis, major depression, and schizophrenia, respectively" in the Abstract actually refers to newly detected genes. Why did this description get removed? It is stated in paragraph 2 of "GenT discovers potential druggable targets"
+    - (done) "we employed our MuGenT-PH post-hoc tests" to "we employed our MuGenT-PH post-hoc test"
+    - (done) "of these genes (RIPK2, NTRK1, RIOK1) related are displayed in Fig.4c, and Fig. 4b demonstrates" to "of these genes (RIPK2, NTRK1, RIOK1) are displayed in Fig.4c, and Fig. 4b and demonstrate"
+    - (done) "consistent with existing literatures" to "consistent with existing literature"
+    - (done) "UniProt ID: P00367;" to "UniProt ID: P00367;"
+    - (done) italics for NTRK1 if not (see "Experimental validation of NTRK1 association ...")
+    Discussion
+    - (done) "This study provides the genome-wide" to "This study provides genome-wide"
+    - (done) "shown in Supplementary Note 12 that 10Kb" to "shown in Supplementary Note 12, 10Kb"
+    Methods
+    - (done) "text was downloaded" to "text were downloaded"
+    - (done) "neighboring gene-specific SNP set" to "neighboring gene-specific SNP sets"
+    - (done) "and their corresponding variances from [EQUATION]" to "and their corresponding variances from [EQUATION WITH INVERSE (n^2-n)]"
+
+
+"We also found 16, 15, 35, and 83 genes linked to AD, ALS, MDD, and SCZ, respectively, that reside beyond 1Mb from any previously identified GWAS genes for each disease, spanning 10, 12, 24, and 37 independent loci (>1Mb separation)."
+
+All the below are done
+
+AQ1: Complete.
+
+AQ2: Complete.
+
+AQ3: Complete.
+
+AQ4: Complete.
+
+AQ5: Complete.
+
+AQ6: We can actually remove this citation. It was to reference the R package indicated in the Code Availability section. A link to this R package is already provided, so we can remove Reference 115.
+
+AQ7: ref.47 (preprint) has not been published yet, so we can keep the current ref. 47 entry.
+
+AQ8: ref. 86 (preprint) has not been published yet, but is has been updated on medRxiv with a new name. It is still accessible using the same DOI that is in the current ref. 86. The updated reference is:
+
+"Lorincz-Comi, N. J. et al. Bayesian inference of genetic pleiotropy identifies drug targets and repurposable medicines for human complex diseases. medRxiv https://doi.org/10.1101/2025.03.17.25324106 (2025)."
+
